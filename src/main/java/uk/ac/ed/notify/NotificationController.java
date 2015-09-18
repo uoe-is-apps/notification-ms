@@ -26,6 +26,12 @@ public class NotificationController {
     @RequestMapping(value="/notification/{notification-id}",method= RequestMethod.GET)
     public @ResponseBody
     Notification getNotification(@PathVariable("notification-id") String notificationId, HttpServletResponse httpServletResponse) throws ServletException {
+
+        Notification notification = new Notification();
+        notification.setNotificationId(notificationId);
+        notification.setTitle("dogs");
+        notification.setBody("some dogs eat chips.");
+        notificationRepository.save(notification);
         if (notificationId.equals(""))
         {
             throw new ServletException("You must provide a notification-id");
