@@ -14,12 +14,16 @@ import org.springframework.cloud.security.oauth2.resource.EnableOAuth2Resource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
+import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
 
 /**
  * Created by rgood on 18/09/2015.
  */
 @Configuration
-@ComponentScan("uk.ac.ed.notify")
+@ComponentScan({"uk.ac.ed.notify"})
 @EntityScan("uk.ac.ed.notify.entity")
 @EnableAutoConfiguration
 @SpringBootApplication
@@ -35,8 +39,7 @@ public class Application {
     @Value("${tomcat.ajp.enabled}")
     boolean tomcatAjpEnabled;
 
-    public static void main(String[] args)
-    {
+    public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
     }
 
@@ -51,8 +54,7 @@ public class Application {
     public EmbeddedServletContainerFactory servletContainer() {
 
         TomcatEmbeddedServletContainerFactory tomcat = new TomcatEmbeddedServletContainerFactory();
-        if (tomcatAjpEnabled)
-        {
+        if (tomcatAjpEnabled) {
             Connector ajpConnector = new Connector("AJP/1.3");
             ajpConnector.setProtocol("AJP/1.3");
             ajpConnector.setPort(ajpPort);
@@ -63,6 +65,20 @@ public class Application {
         }
 
         return tomcat;
+    }
+
+    @Configuration
+    @EnableResourceServer
+    static class OauthResourceServerConfiguration extends ResourceServerConfigurerAdapter {
+
+        @Override
+        public void configure(HttpSecurity http) throws Exception {
+            http.anonymous().and()
+                    .authorizeRequests()
+                    .antMatchers("/", "/lib/*","/images/*","/css/*","/swagger-ui.js","/api-docs","/fonts/*","/api-docs/*","/api-docs/default/*","/o2c.html").permitAll()
+                    .anyRequest().authenticated();
+        }
+
     }
 
 }
