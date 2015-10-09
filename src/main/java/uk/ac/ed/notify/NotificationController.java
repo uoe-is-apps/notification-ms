@@ -37,20 +37,57 @@ public class NotificationController {
     public @ResponseBody
     Notification getNotification(@PathVariable("notification-id") String notificationId, HttpServletResponse httpServletResponse) throws ServletException {
 
+        System.out.println("Called getNotification");
         Notification notification = new Notification();
-        notification.setNotificationId(notificationId);
+        //notification.setNotificationId(notificationId);
         notification.setTitle("dogs");
         notification.setBody("some dogs eat chips.");
         notificationRepository.save(notification);
+        System.out.println(notification.getNotificationId());
         if (notificationId.equals(""))
         {
             throw new ServletException("You must provide a notification-id");
         }
-        long expires = (new Date()).getTime()+cacheExpiry;
+         long expires = (new Date()).getTime()+cacheExpiry;
 
-        httpServletResponse.setHeader("cache-control", "public, max-age=" + cacheExpiry/1000 + ", cache");
-        httpServletResponse.setDateHeader("Expires", expires);
-        return notificationRepository.findOne(notificationId);
+         httpServletResponse.setHeader("cache-control", "public, max-age=" + cacheExpiry/1000 + ", cache");
+         httpServletResponse.setDateHeader("Expires", expires);
+
+        return notificationRepository.findOne(notification.getNotificationId());
+    }
+    @RequestMapping(value="/notification/publisher/{publisher-id}",method = RequestMethod.GET)
+    public @ResponseBody List<Notification> getPublisherNotifications()
+    {
+        //TODO restrict to client = publisherId
+        //TODO hook into new repository method for get by publisher
+        List<Notification> notificationList = new ArrayList<>();
+        Notification notification = new Notification();
+        //notification.setNotificationId(notificationId);
+        notification.setTitle("Example one");
+        notification.setBody("some dogs eat chips.");
+        notificationList.add(notification);
+        notification = new Notification();
+        notification.setTitle("Example two");
+        notification.setBody("some dogs eat chips.");
+        notificationList.add(notification);
+        return notificationList;
+    }
+
+    @ApiOperation(value="Create a new notification",notes="Requires a valid notification object",
+            authorizations = {@Authorization(value="oauth2",scopes = {@AuthorizationScope(scope="notifications.write",description = "Write access to notification API")})})
+    @RequestMapping(value="/notification/", method=RequestMethod.POST)
+    public @ResponseBody Notification setNotification(@RequestBody Notification notification)
+    {
+        System.out.println("Called setNotification");
+        //TODO Check that publisher ID is valid
+        //TODO Check that variables are valid
+        //TODO Add JSOUP Cleaner
+        //TODO Add audit row
+        //TODO Log errors
+
+        notificationRepository.save(notification);
+        System.out.println("Saved notification");
+        return notification;
     }
 
     @ApiOperation(value="Get a list of categories containing notifications for a user",notes="Requires notification id to look up",

@@ -1,6 +1,7 @@
 package uk.ac.ed.notify.entity;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -13,6 +14,9 @@ import java.util.Date;
 public class Notification {
 
         @Id
+        @GeneratedValue(generator="system-uuid")
+        @GenericGenerator(name="system-uuid",
+                strategy = "uuid")
         @Column(name="NOTIFICATION_ID")
         private String notificationId;
 
