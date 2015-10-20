@@ -23,7 +23,7 @@ public class UserNotificationAuditRepositoryTest {
     @Autowired
     UserNotificationAuditRepository userNotificationAuditRepository;
 
-    Date date;
+    private Date date;
 
     @Before
     public void setup()

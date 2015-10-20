@@ -23,7 +23,7 @@ public class NotificationErrorRepositoryTest {
     @Autowired
     NotificationErrorRepository errorRepository;
 
-    Date date;
+    private Date date;
 
     @Before
     public void setup()
