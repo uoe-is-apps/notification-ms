@@ -10,7 +10,10 @@ import java.util.Date;
  * Created by rgood on 18/09/2015.
  */
 @Entity
-@Table(name="PUBLISHER_NOTIFICATION")
+@Table(name="NOTIFICATIONS", schema = "NOTIFY")
+@NamedQueries({
+       @NamedQuery(name = "Notification.findByPublisherId", query = "SELECT a FROM Notification a WHERE a.publisherId = (?1)")
+})
 public class Notification {
 
         @Id
@@ -26,16 +29,16 @@ public class Notification {
         @Column(name="PUBLISHER_NOTIFICATION_ID")
         private String publisherNotificationId;
 
-        @Column(name="CATEGORY")
+        @Column(name="TOPIC")
         private String category;
 
         @Column(name="TITLE")
         private String title;
 
-        @Column(name="BODY")
+        @Column(name="NOTIFICATION_BODY")
         private String body;
 
-        @Column(name="URL")
+        @Column(name="NOTIFICATION_URL")
         private String url;
 
         @JsonSerialize(using=DatePartSerializer.class)
@@ -50,6 +53,11 @@ public class Notification {
 
         @Column(name="uun")
         private String uun;
+
+        @JsonSerialize(using=DatePartSerializer.class)
+        @Column(name="LAST_UPDATED")
+        @Temporal(TemporalType.TIMESTAMP)
+        private Date lastUpdated;
 
         public String getNotificationId() {
                 return notificationId;

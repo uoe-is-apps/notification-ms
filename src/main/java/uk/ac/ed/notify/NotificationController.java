@@ -3,19 +3,18 @@ package uk.ac.ed.notify;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.Authorization;
 import com.wordnik.swagger.annotations.AuthorizationScope;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.jasig.portlet.notice.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.web.bind.annotation.*;
-import uk.ac.ed.notify.entity.Category;
 import uk.ac.ed.notify.entity.Notification;
+import uk.ac.ed.notify.repository.NotificationRepository;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.security.Principal;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -37,13 +36,6 @@ public class NotificationController {
     public @ResponseBody
     Notification getNotification(@PathVariable("notification-id") String notificationId, HttpServletResponse httpServletResponse) throws ServletException {
 
-        System.out.println("Called getNotification");
-        Notification notification = new Notification();
-        //notification.setNotificationId(notificationId);
-        notification.setTitle("dogs");
-        notification.setBody("some dogs eat chips.");
-        notificationRepository.save(notification);
-        System.out.println(notification.getNotificationId());
         if (notificationId.equals(""))
         {
             throw new ServletException("You must provide a notification-id");
@@ -53,24 +45,24 @@ public class NotificationController {
          httpServletResponse.setHeader("cache-control", "public, max-age=" + cacheExpiry/1000 + ", cache");
          httpServletResponse.setDateHeader("Expires", expires);
 
-        return notificationRepository.findOne(notification.getNotificationId());
+        return notificationRepository.findOne(notificationId);
     }
+
+    @ApiOperation(value="Get a specific notification",notes="Gets all notifications for a specific publisher",
+            authorizations = {@Authorization(value="oauth2",scopes = {@AuthorizationScope(scope="notifications.read",description = "Read access to notification API")})})
     @RequestMapping(value="/notification/publisher/{publisher-id}",method = RequestMethod.GET)
-    public @ResponseBody List<Notification> getPublisherNotifications()
+    public @ResponseBody List<Notification> getPublisherNotifications(@PathVariable("publisher-id") String publisherId,Principal principal,HttpServletRequest request,OAuth2Authentication authentication)
     {
+        System.out.println(principal.getName());
+        System.out.println(authentication);
+        System.out.println((String)authentication.getPrincipal());
+        System.out.println(authentication.getDetails());
+        System.out.println(authentication.getCredentials());
+        System.out.println(authentication.getOAuth2Request().getScope());
+        System.out.println(authentication.getUserAuthentication().getAuthorities());
+        System.out.println(authentication.getUserAuthentication());
         //TODO restrict to client = publisherId
-        //TODO hook into new repository method for get by publisher
-        List<Notification> notificationList = new ArrayList<>();
-        Notification notification = new Notification();
-        //notification.setNotificationId(notificationId);
-        notification.setTitle("Example one");
-        notification.setBody("some dogs eat chips.");
-        notificationList.add(notification);
-        notification = new Notification();
-        notification.setTitle("Example two");
-        notification.setBody("some dogs eat chips.");
-        notificationList.add(notification);
-        return notificationList;
+        return notificationRepository.findByPublisherId(publisherId);
     }
 
     @ApiOperation(value="Create a new notification",notes="Requires a valid notification object",
