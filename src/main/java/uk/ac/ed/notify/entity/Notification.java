@@ -2,6 +2,8 @@ package uk.ac.ed.notify.entity;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.hibernate.annotations.GenericGenerator;
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Whitelist;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -88,7 +90,13 @@ public class Notification {
         }
 
         public void setCategory(String category) {
-                this.category = category;
+
+                String cleaned = Jsoup.clean(category,Whitelist.basic());
+                if (!cleaned.equals(category))
+                {
+                        //TODO Add audit
+                }
+                this.category = cleaned;
         }
 
         public String getTitle() {
@@ -96,7 +104,12 @@ public class Notification {
         }
 
         public void setTitle(String title) {
-                this.title = title;
+                String cleaned = Jsoup.clean(title,Whitelist.basic());
+                if (!cleaned.equals(title))
+                {
+                        //TODO Add audit
+                }
+                this.title = cleaned;
         }
 
         public String getBody() {
@@ -104,15 +117,24 @@ public class Notification {
         }
 
         public void setBody(String body) {
-                this.body = body;
+                String cleaned = Jsoup.clean(body, Whitelist.basic());
+                if (!cleaned.equals(body))
+                {
+                        //TODO Add audit
+                }
+                this.body = cleaned;
         }
 
-        public String getUrl() {
-                return url;
-        }
+        public String getUrl() { return url; }
 
         public void setUrl(String url) {
-                this.url = url;
+
+                String cleaned = Jsoup.clean(url,Whitelist.basic());
+                if (!cleaned.equals(url))
+                {
+                        //TODO Add audit
+                }
+                this.url = cleaned;
         }
 
         public Date getStartDate() {
