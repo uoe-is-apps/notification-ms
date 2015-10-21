@@ -110,6 +110,16 @@ public class NotificationController {
             return notificationResponse;
         }
 
+        SubscriberDetails subscriberDetails = subscriberDetailsRepository.findOne(subscriberId);
+
+        if (subscriberDetails==null||!subscriberDetails.getStatus().equals("A"))
+        {
+            List<NotificationError> errors = new ArrayList<NotificationError>();
+            errors.add(new NotificationError("Invalid subscriber or subscriber inactive", "Notification Backbone"));
+            notificationResponse.setErrors(errors);
+            return notificationResponse;
+        }
+
         try {
             List<TopicSubscription> topicSubscriptionList = topicSubscriptionRepository.findBySubscriberId(subscriberId);
 

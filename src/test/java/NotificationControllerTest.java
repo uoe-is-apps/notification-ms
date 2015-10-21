@@ -21,6 +21,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 import uk.ac.ed.notify.controller.NotificationController;
 import uk.ac.ed.notify.entity.Notification;
+import uk.ac.ed.notify.entity.SubscriberDetails;
 import uk.ac.ed.notify.entity.TopicSubscription;
 import uk.ac.ed.notify.repository.*;
 
@@ -39,9 +40,6 @@ public class NotificationControllerTest {
 
     private String notificationId;
 
-   /* @Autowired
-    NotificationController notificationController;*/
-
     @Autowired
     NotificationRepository notificationRepository;
 
@@ -56,6 +54,9 @@ public class NotificationControllerTest {
 
     @Autowired
     NotificationErrorRepository notificationErrorRepository;*/
+
+    @Autowired
+    SubscriberDetailsRepository subscriberDetailsRepository;
 
     @Autowired
     WebApplicationContext wac;
@@ -143,6 +144,12 @@ public class NotificationControllerTest {
     @Test
     public void testGetUserNotifications() throws Exception {
 
+        SubscriberDetails subscriberDetails = new SubscriberDetails();
+        subscriberDetails.setSubscriberId("TESTSUB");
+        subscriberDetails.setStatus("A");
+        subscriberDetails.setType("PULL");
+        subscriberDetails.setLastUpdated(date);
+        subscriberDetailsRepository.save(subscriberDetails);
         Notification notification = new Notification();
         notification.setBody("<p>Test</p>");
         notification.setTopic("TESTCATEGORY");
@@ -177,7 +184,23 @@ public class NotificationControllerTest {
         }))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.categories[0].title",is("TESTCATEGORYTWO")));
+    }
 
+    @Test
+    public void testGetUserNotificationsWithInactiveSubscriber() throws Exception {
+        this.mockMvc.perform(get("/usernotifications/INVALIDSUB").with((MockHttpServletRequest request) -> {
+            request.setParameter("user.login.id","TESTUUN");
+            return request;
+        }))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.errors[0].error",is("Invalid subscriber or subscriber inactive")));
+
+    }
+
+    @Test public void testGetUserNotificationsWithNoUser() throws Exception {
+        this.mockMvc.perform(get("/usernotifications/TESTSUB"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.errors[0].error", is("No UUN provided")));
     }
 
 }
