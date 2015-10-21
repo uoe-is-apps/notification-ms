@@ -1,4 +1,5 @@
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.After;
 import org.junit.Before;
@@ -11,10 +12,9 @@ import org.springframework.boot.test.SpringApplicationConfiguration;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -26,10 +26,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 import uk.ac.ed.notify.controller.NotificationController;
-import uk.ac.ed.notify.entity.Notification;
-import uk.ac.ed.notify.entity.PublisherDetails;
-import uk.ac.ed.notify.entity.SubscriberDetails;
-import uk.ac.ed.notify.entity.TopicSubscription;
+import uk.ac.ed.notify.entity.*;
 import uk.ac.ed.notify.repository.*;
 
 
@@ -56,11 +53,11 @@ public class NotificationControllerTest {
     @Autowired
     TopicSubscriptionRepository topicSubscriptionRepository;
 
-   /* @Autowired
+    @Autowired
     UserNotificationAuditRepository userNotificationAuditRepository;
 
     @Autowired
-    NotificationErrorRepository notificationErrorRepository;*/
+    NotificationErrorRepository notificationErrorRepository;
 
     @Autowired
     SubscriberDetailsRepository subscriberDetailsRepository;
@@ -89,6 +86,8 @@ public class NotificationControllerTest {
     {
         notificationRepository.deleteAll();
         topicSubscriptionRepository.deleteAll();
+        userNotificationAuditRepository.deleteAll();
+        notificationErrorRepository.deleteAll();
     }
 
 
@@ -236,6 +235,9 @@ public class NotificationControllerTest {
 
         notification = notificationRepository.findOne(notificationId);
         assertNull(notification);
+
+        Iterable<UserNotificationAudit> userNotificationAudits = userNotificationAuditRepository.findAll();
+        assertEquals(AuditActions.DELETE_NOTIFICATION,userNotificationAudits.iterator().next().getAction());
     }
 
     @Test
@@ -256,13 +258,45 @@ public class NotificationControllerTest {
         notification.setTitle("UPDATEDTITLE");
         ObjectMapper objMapper = new ObjectMapper();
         String jsonString = objMapper.writeValueAsString(notification);
-        System.out.println(jsonString);
         this.mockMvc.perform(put("/notification/"+notificationId).content(jsonString).contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk());
 
         notification = notificationRepository.findOne(notificationId);
         assertEquals("UPDATEDTITLE",notification.getTitle());
 
+        Iterable<UserNotificationAudit> userNotificationAudits = userNotificationAuditRepository.findAll();
+        assertEquals(AuditActions.UPDATE_NOTIFICATION,userNotificationAudits.iterator().next().getAction());
+
     }
+
+    @Test
+    public void testCreateNotification() throws Exception {
+        Notification notification = new Notification();
+        notification.setBody("<p>Test</p>");
+        notification.setTopic("TESTCATEGORY");
+        notification.setPublisherId("TESTPUB");
+        notification.setPublisherNotificationId("12");
+        notification.setTitle("TESTTITLE");
+        notification.setUrl("http://www.google.co.uk");
+        notification.setUun("TESTUUN");
+        notification.setStartDate(date);
+        notification.setEndDate(date);
+
+        ObjectMapper objMapper = new ObjectMapper();
+        String jsonString = objMapper.writeValueAsString(notification);
+        String contentAsString = this.mockMvc.perform(post("/notification/")
+                .content(jsonString).contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        notification = objMapper.readValue(contentAsString,Notification.class);
+        Notification one = notificationRepository.findOne(notification.getNotificationId());
+        assertNotNull(one);
+
+        Iterable<UserNotificationAudit> userNotificationAudits = userNotificationAuditRepository.findAll();
+        assertEquals(AuditActions.CREATE_NOTIFICATION,userNotificationAudits.iterator().next().getAction());
+
+    }
+
+
 
 
 }

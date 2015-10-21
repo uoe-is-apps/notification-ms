@@ -166,4 +166,12 @@ public class Notification {
         public void setUun(String uun) {
                 this.uun = uun;
         }
+
+        public Date getLastUpdated() {
+                return lastUpdated;
+        }
+
+        public void setLastUpdated(Date lastUpdated) {
+                this.lastUpdated = lastUpdated;
+        }
 }

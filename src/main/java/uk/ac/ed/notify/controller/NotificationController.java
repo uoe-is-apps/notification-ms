@@ -3,6 +3,9 @@ package uk.ac.ed.notify.controller;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.Authorization;
 import com.wordnik.swagger.annotations.AuthorizationScope;
+import org.hibernate.hql.internal.ast.ErrorReporter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
@@ -11,15 +14,10 @@ import uk.ac.ed.notify.NotificationCategory;
 import uk.ac.ed.notify.NotificationEntry;
 import uk.ac.ed.notify.NotificationError;
 import uk.ac.ed.notify.NotificationResponse;
-import uk.ac.ed.notify.entity.Notification;
-import uk.ac.ed.notify.entity.PublisherDetails;
-import uk.ac.ed.notify.entity.SubscriberDetails;
-import uk.ac.ed.notify.entity.TopicSubscription;
-import uk.ac.ed.notify.repository.NotificationRepository;
-import uk.ac.ed.notify.repository.PublisherDetailsRepository;
-import uk.ac.ed.notify.repository.SubscriberDetailsRepository;
-import uk.ac.ed.notify.repository.TopicSubscriptionRepository;
+import uk.ac.ed.notify.entity.*;
+import uk.ac.ed.notify.repository.*;
 
+import javax.servlet.Servlet;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -33,6 +31,8 @@ import java.util.List;
  */
 @RestController
 public class NotificationController {
+
+    private static final Logger logger = LoggerFactory.getLogger(NotificationController.class);
 
     //TODO Logging
     //TODO Audit
@@ -53,6 +53,12 @@ public class NotificationController {
     @Autowired
     TopicSubscriptionRepository topicSubscriptionRepository;
 
+    @Autowired
+    UserNotificationAuditRepository userNotificationAuditRepository;
+
+    @Autowired
+    NotificationErrorRepository notificationErrorRepository;
+
     @ApiOperation(value="Get a specific notification",notes="Requires notification id to look up",
     authorizations = {@Authorization(value="oauth2",scopes = {@AuthorizationScope(scope="notifications.read",description = "Read access to notification API")})})
     @RequestMapping(value="/notification/{notification-id}",method= RequestMethod.GET)
@@ -61,6 +67,7 @@ public class NotificationController {
 
         if (notificationId.equals(""))
         {
+            logger.warn("getNotification called with no notification-id");
             throw new ServletException("You must provide a notification-id");
         }
         long expires = (new Date()).getTime()+cacheExpiry;
@@ -79,48 +86,108 @@ public class NotificationController {
         PublisherDetails publisherDetails = publisherDetailsRepository.findOne(publisherId);
         if (publisherDetails==null||!publisherDetails.getStatus().equals("A"))
         {
+            logger.error("getPublisherNotifications called with invalid/inactive publisher");
             throw new ServletException("Invalid publisher or publisher is inactive");
         }
-        //TODO restrict to client = publisherId
-        return notificationRepository.findByPublisherId(publisherId);
+        try
+        {
+            //TODO restrict to client = publisherId
+            return notificationRepository.findByPublisherId(publisherId);
+        }
+        catch (Exception e)
+        {
+            logger.error("Error getting publisher notifications",e);
+            throw new ServletException("Error getting publisher notifications");
+        }
     }
 
     @ApiOperation(value="Create a new notification",notes="Requires a valid notification object",
             authorizations = {@Authorization(value="oauth2",scopes = {@AuthorizationScope(scope="notifications.write",description = "Write access to notification API")})})
     @RequestMapping(value="/notification/", method=RequestMethod.POST)
-    public @ResponseBody Notification setNotification(@RequestBody Notification notification)
-    {
+    public @ResponseBody Notification setNotification(@RequestBody Notification notification) throws ServletException {
         //TODO Check that publisher ID is valid
         //TODO Check that variables are valid
-        //TODO Add audit row
-        //TODO Log errors
-        notificationRepository.save(notification);
-        return notification;
+        try
+        {
+            notificationRepository.save(notification);
+            UserNotificationAudit userNotificationAudit = new UserNotificationAudit();
+            userNotificationAudit.setAction(AuditActions.CREATE_NOTIFICATION);
+            userNotificationAudit.setAuditDate(new Date());
+            userNotificationAudit.setPublisherId(notification.getPublisherId());
+            userNotificationAudit.setUun(notification.getUun());
+            userNotificationAuditRepository.save(userNotificationAudit);
+            return notification;
+        }
+        catch (Exception e)
+        {
+            logger.error("Error saving notification",e);
+            uk.ac.ed.notify.entity.NotificationError notificationError = new uk.ac.ed.notify.entity.NotificationError();
+            notificationError.setErrorCode(ErrorCodes.SAVE_ERROR);
+            notificationError.setErrorDescription(e.getMessage());
+            notificationError.setErrorDate(new Date());
+            notificationErrorRepository.save(notificationError);
+            throw new ServletException("Error saving notification");
+        }
+
     }
 
     @RequestMapping(value="/notification/{notification-id}",method=RequestMethod.PUT)
     public void updateNotification(@PathVariable("notification-id") String notificationId, @RequestBody Notification notification) throws ServletException {
         //TODO Add publisher validation checks
-        //TODO Add audit row
-        //TODO Log errors
         if (!notificationId.equals(notification.getNotificationId()))
         {
-            System.out.println(notification.getNotificationId());
-            System.out.println(notificationId);
             throw new ServletException("Notification Id and notification body do not match");
         }
-        notificationRepository.save(notification);
+        try
+        {
+            notificationRepository.save(notification);
+            UserNotificationAudit userNotificationAudit = new UserNotificationAudit();
+            userNotificationAudit.setAction(AuditActions.UPDATE_NOTIFICATION);
+            userNotificationAudit.setAuditDate(new Date());
+            userNotificationAudit.setPublisherId(notification.getPublisherId());
+            userNotificationAudit.setUun(notification.getUun());
+            userNotificationAuditRepository.save(userNotificationAudit);
+        }
+        catch (Exception e)
+        {
+            logger.error("Error saving notification",e);
+            uk.ac.ed.notify.entity.NotificationError notificationError = new uk.ac.ed.notify.entity.NotificationError();
+            notificationError.setErrorCode(ErrorCodes.SAVE_ERROR);
+            notificationError.setErrorDescription(e.getMessage());
+            notificationError.setErrorDate(new Date());
+            notificationErrorRepository.save(notificationError);
+            throw new ServletException("Error saving notification");
+        }
+
     }
 
     @ApiOperation(value="Delete a notification",notes="Requires a valid notification-id",
             authorizations = {@Authorization(value="oauth2",scopes = {@AuthorizationScope(scope="notifications.write",description = "Write access to notification API")})})
     @RequestMapping(value="/notification/{notification-id}",method=RequestMethod.DELETE)
-    public void deleteNotification(@PathVariable("notification-id") String notificationId)
-    {
+    public void deleteNotification(@PathVariable("notification-id") String notificationId) throws ServletException {
         //TODO Add publisher validation checks
-        //TODO Add audit row
-        //TODO Log errors
-        notificationRepository.delete(notificationId);
+        try
+        {
+            Notification notification = notificationRepository.findOne(notificationId);
+            notificationRepository.delete(notificationId);
+            UserNotificationAudit userNotificationAudit = new UserNotificationAudit();
+            userNotificationAudit.setAction(AuditActions.DELETE_NOTIFICATION);
+            userNotificationAudit.setAuditDate(new Date());
+            userNotificationAudit.setPublisherId(notification.getPublisherId());
+            userNotificationAudit.setUun(notification.getUun());
+            userNotificationAuditRepository.save(userNotificationAudit);
+        }
+        catch (Exception e)
+        {
+            logger.error("Error deleting notification",e);
+            uk.ac.ed.notify.entity.NotificationError notificationError = new uk.ac.ed.notify.entity.NotificationError();
+            notificationError.setErrorCode(ErrorCodes.DELETE_ERROR);
+            notificationError.setErrorDescription(e.getMessage());
+            notificationError.setErrorDate(new Date());
+            notificationErrorRepository.save(notificationError);
+            throw new ServletException("Error deleting notification");
+        }
+
     }
 
     @ApiOperation(value="Get a list of categories containing notifications for a user",notes="Requires subcriber id to look up, and uun of user",
@@ -181,6 +248,12 @@ public class NotificationController {
         }
         catch (Exception e)
         {
+            logger.error("Error building user notifications",e);
+            uk.ac.ed.notify.entity.NotificationError notificationError = new uk.ac.ed.notify.entity.NotificationError();
+            notificationError.setErrorCode(ErrorCodes.GET_ERROR);
+            notificationError.setErrorDescription(e.getMessage());
+            notificationError.setErrorDate(new Date());
+            notificationErrorRepository.save(notificationError);
             List<NotificationError> errors = new ArrayList<NotificationError>();
             errors.add(new NotificationError("Error while producing feed", "Notification Backbone"));
             notificationResponse.setErrors(errors);
