@@ -20,6 +20,9 @@ public class UserNotificationAudit {
     @Column(name="AUDIT_ID")
     private String auditId;
 
+    @Column(name="AUDIT_DESCRIPTION")
+    private String auditDescription;
+
     @Column(name="UUN")
     private String uun;
 
@@ -72,5 +75,13 @@ public class UserNotificationAudit {
 
     public void setAuditDate(Date auditDate) {
         this.auditDate = auditDate;
+    }
+
+    public String getAuditDescription() {
+        return auditDescription;
+    }
+
+    public void setAuditDescription(String auditDescription) {
+        this.auditDescription = auditDescription;
     }
 }

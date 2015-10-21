@@ -7,7 +7,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import uk.ac.ed.notify.repository.NotificationErrorRepository;
 import uk.ac.ed.notify.entity.NotificationError;
 
-import javax.transaction.Transactional;
 import java.util.Date;
 
 import static org.junit.Assert.assertEquals;

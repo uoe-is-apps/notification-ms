@@ -21,7 +21,7 @@ public class PublisherDetailsRepositoryTest {
 
 
     @Autowired
-    PublisherDetailsRepository publisherDetailsRepository;
+    private PublisherDetailsRepository publisherDetailsRepository;
 
     private Date date;
 

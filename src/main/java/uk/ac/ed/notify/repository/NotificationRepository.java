@@ -10,10 +10,10 @@ import java.util.List;
  */
 public interface NotificationRepository extends CrudRepository<Notification,String>{
 
-    public List<Notification> findByPublisherId (String publisherId);
+    List<Notification> findByPublisherId(String publisherId);
 
-    public List<Notification> findByUun (String uun);
+    List<Notification> findByUun(String uun);
 
-    public List<Notification> findByUunAndTopic (String uun, String topic);
+    List<Notification> findByUunAndTopic(String uun, String topic);
 
 }

@@ -21,7 +21,7 @@ import static org.junit.Assert.assertEquals;
 public class NotificationRepositoryTest {
 
     @Autowired
-    NotificationRepository notificationRepository;
+    private NotificationRepository notificationRepository;
 
     private Date date;
 

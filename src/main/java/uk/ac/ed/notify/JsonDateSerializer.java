@@ -42,7 +42,7 @@ public class JsonDateSerializer extends JsonSerializer<Date> {
 
     @SuppressWarnings("deprecation")
     @Override
-    public void serialize(Date date, JsonGenerator gen, SerializerProvider provider) throws JsonGenerationException, IOException {
+    public void serialize(Date date, JsonGenerator gen, SerializerProvider provider) throws IOException {
         
         gen.writeStartObject();
         gen.writeNumberField("date", date.getDate());

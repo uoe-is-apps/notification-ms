@@ -22,7 +22,7 @@ import static org.junit.Assert.assertNull;
 public class TopicSubscriptionRepositoryTest {
 
     @Autowired
-    TopicSubscriptionRepository topicSubscriptionRepository;
+    private TopicSubscriptionRepository topicSubscriptionRepository;
 
     private Date date;
 

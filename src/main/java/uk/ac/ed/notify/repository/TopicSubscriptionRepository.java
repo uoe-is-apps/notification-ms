@@ -10,6 +10,6 @@ import java.util.List;
  */
 public interface TopicSubscriptionRepository extends CrudRepository<TopicSubscription,String> {
 
-    public List<TopicSubscription> findBySubscriberId(String subscriberId);
+    List<TopicSubscription> findBySubscriberId(String subscriberId);
 
 }

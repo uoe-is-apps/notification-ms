@@ -5,8 +5,9 @@ package uk.ac.ed.notify.entity;
  */
 public interface AuditActions {
 
-    public static final String CREATE_NOTIFICATION="PUBLISH_NOTIFICATION";
-    public static final String UPDATE_NOTIFICATION="UPDATE_NOTIFICATION";
-    public static final String DELETE_NOTIFICATION="DELETE_NOTIFICATION";
+    String CREATE_NOTIFICATION="PUBLISH_NOTIFICATION";
+    String UPDATE_NOTIFICATION="UPDATE_NOTIFICATION";
+    String DELETE_NOTIFICATION="DELETE_NOTIFICATION";
+    String CLEANED_HTML="CLEANED_HTML";
 
 }

@@ -5,7 +5,7 @@ package uk.ac.ed.notify.entity;
  */
 public interface ErrorCodes {
 
-    public static final String SAVE_ERROR = "SAVE_ERROR";
-    public static final String DELETE_ERROR = "DELETE_ERROR";
-    public static final String GET_ERROR = "GET_ERROR";
+    String SAVE_ERROR = "SAVE_ERROR";
+    String DELETE_ERROR = "DELETE_ERROR";
+    String GET_ERROR = "GET_ERROR";
 }

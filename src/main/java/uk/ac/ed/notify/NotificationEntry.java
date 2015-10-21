@@ -20,7 +20,6 @@ package uk.ac.ed.notify;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.apache.commons.lang.builder.ToStringBuilder;
-import uk.ac.ed.notify.entity.DatePartSerializer;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;

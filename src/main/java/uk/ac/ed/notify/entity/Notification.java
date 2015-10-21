@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.hibernate.annotations.GenericGenerator;
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Whitelist;
+import org.springframework.beans.factory.annotation.Autowired;
+import uk.ac.ed.notify.repository.UserNotificationAuditRepository;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -17,10 +19,12 @@ import java.util.Date;
         @NamedQuery(name = "Notification.findByPublisherId", query = "SELECT a FROM Notification a WHERE a.publisherId = (?1)"),
         @NamedQuery(name = "Notification.findByUun", query = "SELECT a FROM Notification a WHERE a.uun = (?1)"),
         @NamedQuery(name = "Notification.findByUunAndTopic", query = "SELECT a FROM Notification a WHERE a.uun = (?1) and a.topic = (?2)")
-
-
 })
 public class Notification {
+
+        @Autowired
+        @Transient
+        UserNotificationAuditRepository userNotificationAuditRepository;
 
         //TODO add not null attributes
         //TODO Add status value validation
@@ -100,7 +104,13 @@ public class Notification {
                 String cleaned = Jsoup.clean(topic,Whitelist.basic());
                 if (!cleaned.equals(topic))
                 {
-                        //TODO Add audit
+                        UserNotificationAudit userNotificationAudit = new UserNotificationAudit();
+                        userNotificationAudit.setAction(AuditActions.CLEANED_HTML);
+                        userNotificationAudit.setAuditDate(new Date());
+                        userNotificationAudit.setPublisherId(this.getPublisherId());
+                        userNotificationAudit.setUun(this.getUun());
+                        userNotificationAudit.setAuditDescription("Was ("+topic.substring(1,248)+")");
+                        userNotificationAuditRepository.save(userNotificationAudit);
                 }
                 this.topic = cleaned;
         }
@@ -113,7 +123,13 @@ public class Notification {
                 String cleaned = Jsoup.clean(title,Whitelist.basic());
                 if (!cleaned.equals(title))
                 {
-                        //TODO Add audit
+                        UserNotificationAudit userNotificationAudit = new UserNotificationAudit();
+                        userNotificationAudit.setAction(AuditActions.CLEANED_HTML);
+                        userNotificationAudit.setAuditDate(new Date());
+                        userNotificationAudit.setPublisherId(this.getPublisherId());
+                        userNotificationAudit.setUun(this.getUun());
+                        userNotificationAudit.setAuditDescription("Was ("+title.substring(1,248)+")");
+                        userNotificationAuditRepository.save(userNotificationAudit);
                 }
                 this.title = cleaned;
         }
@@ -126,7 +142,13 @@ public class Notification {
                 String cleaned = Jsoup.clean(body, Whitelist.basic());
                 if (!cleaned.equals(body))
                 {
-                        //TODO Add audit
+                        UserNotificationAudit userNotificationAudit = new UserNotificationAudit();
+                        userNotificationAudit.setAction(AuditActions.CLEANED_HTML);
+                        userNotificationAudit.setAuditDate(new Date());
+                        userNotificationAudit.setPublisherId(this.getPublisherId());
+                        userNotificationAudit.setUun(this.getUun());
+                        userNotificationAudit.setAuditDescription("Was ("+body.substring(1,248)+")");
+                        userNotificationAuditRepository.save(userNotificationAudit);
                 }
                 this.body = cleaned;
         }
@@ -138,7 +160,13 @@ public class Notification {
                 String cleaned = Jsoup.clean(url,Whitelist.basic());
                 if (!cleaned.equals(url))
                 {
-                        //TODO Add audit
+                        UserNotificationAudit userNotificationAudit = new UserNotificationAudit();
+                        userNotificationAudit.setAction(AuditActions.CLEANED_HTML);
+                        userNotificationAudit.setAuditDate(new Date());
+                        userNotificationAudit.setPublisherId(this.getPublisherId());
+                        userNotificationAudit.setUun(this.getUun());
+                        userNotificationAudit.setAuditDescription("Was ("+url.substring(1,248)+")");
+                        userNotificationAuditRepository.save(userNotificationAudit);
                 }
                 this.url = cleaned;
         }

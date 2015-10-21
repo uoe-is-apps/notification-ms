@@ -4,27 +4,13 @@ import org.apache.catalina.connector.Connector;
 import org.apache.catalina.valves.RemoteIpValve;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.embedded.EmbeddedServletContainerFactory;
 import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.orm.jpa.EntityScan;
 import org.springframework.cloud.security.oauth2.resource.EnableOAuth2Resource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
-import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
-import org.springframework.security.config.annotation.method.configuration.GlobalMethodSecurityConfiguration;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
-import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
-import org.springframework.security.oauth2.config.annotation.web.configurers.ResourceServerSecurityConfigurer;
-import org.springframework.security.oauth2.provider.expression.OAuth2MethodSecurityExpressionHandler;
-import org.springframework.security.oauth2.provider.token.RemoteTokenServices;
 
 /**
  * Created by rgood on 18/09/2015.
@@ -37,13 +23,13 @@ import org.springframework.security.oauth2.provider.token.RemoteTokenServices;
 public class Application {
 
     @Value("${tomcat.ajp.port}")
-    int ajpPort;
+    private int ajpPort;
 
     @Value("${tomcat.ajp.remoteauthentication}")
-    String remoteAuthentication;
+    private String remoteAuthentication;
 
     @Value("${tomcat.ajp.enabled}")
-    boolean tomcatAjpEnabled;
+    private boolean tomcatAjpEnabled;
 
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);

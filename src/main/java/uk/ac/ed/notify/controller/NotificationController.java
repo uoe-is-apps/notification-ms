@@ -3,7 +3,6 @@ package uk.ac.ed.notify.controller;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.Authorization;
 import com.wordnik.swagger.annotations.AuthorizationScope;
-import org.hibernate.hql.internal.ast.ErrorReporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +16,6 @@ import uk.ac.ed.notify.NotificationResponse;
 import uk.ac.ed.notify.entity.*;
 import uk.ac.ed.notify.repository.*;
 
-import javax.servlet.Servlet;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -194,8 +192,7 @@ public class NotificationController {
             authorizations = {@Authorization(value="oauth2",scopes = {@AuthorizationScope(scope="notifications.read",description = "Read access to notification API")})})
     @RequestMapping(value="/usernotifications/{subscriber-id}",method= RequestMethod.GET)
     public @ResponseBody
-    NotificationResponse getNoticationByUser(@PathVariable("subscriber-id") String subscriberId, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws ServletException
-    {
+    NotificationResponse getNoticationByUser(@PathVariable("subscriber-id") String subscriberId, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
         String uun = httpServletRequest.getParameter("user.login.id");
 
         NotificationResponse notificationResponse = new NotificationResponse();

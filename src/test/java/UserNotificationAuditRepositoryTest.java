@@ -21,7 +21,7 @@ import static org.junit.Assert.assertNull;
 public class UserNotificationAuditRepositoryTest {
 
     @Autowired
-    UserNotificationAuditRepository userNotificationAuditRepository;
+    private UserNotificationAuditRepository userNotificationAuditRepository;
 
     private Date date;
 
