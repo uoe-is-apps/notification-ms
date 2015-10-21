@@ -1,6 +1,7 @@
 package uk.ac.ed.notify.entity;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -12,7 +13,12 @@ import java.util.Date;
 @Table(name="TOPIC_SUBSCRIPTIONS",schema = "NOTIFY")
 public class TopicSubscription {
 
+    //TODO add not null attributes
+    //TODO Add status value validation
     @Id
+    @GeneratedValue(generator="system-uuid")
+    @GenericGenerator(name="system-uuid",
+            strategy = "uuid")
     @Column(name="SUBSCRIPTION_ID")
     private String subscriptionId;
 
@@ -21,6 +27,7 @@ public class TopicSubscription {
 
     @Column(name="TOPIC")
     private String topic;
+
 
     @Column(name="STATUS")
     private String status;

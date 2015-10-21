@@ -1,4 +1,4 @@
-package uk.ac.ed.notify;
+package uk.ac.ed.notify.controller;
 
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.Authorization;
@@ -7,6 +7,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.web.bind.annotation.*;
+import uk.ac.ed.notify.NotificationCategory;
+import uk.ac.ed.notify.NotificationEntry;
+import uk.ac.ed.notify.NotificationResponse;
 import uk.ac.ed.notify.entity.Notification;
 import uk.ac.ed.notify.repository.NotificationRepository;
 
@@ -53,14 +56,6 @@ public class NotificationController {
     @RequestMapping(value="/notification/publisher/{publisher-id}",method = RequestMethod.GET)
     public @ResponseBody List<Notification> getPublisherNotifications(@PathVariable("publisher-id") String publisherId,Principal principal,HttpServletRequest request,OAuth2Authentication authentication)
     {
-        System.out.println(principal.getName());
-        System.out.println(authentication);
-        System.out.println((String)authentication.getPrincipal());
-        System.out.println(authentication.getDetails());
-        System.out.println(authentication.getCredentials());
-        System.out.println(authentication.getOAuth2Request().getScope());
-        System.out.println(authentication.getUserAuthentication().getAuthorities());
-        System.out.println(authentication.getUserAuthentication());
         //TODO restrict to client = publisherId
         return notificationRepository.findByPublisherId(publisherId);
     }

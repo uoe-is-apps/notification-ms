@@ -18,6 +18,8 @@ import java.util.Date;
 })
 public class Notification {
 
+        //TODO add not null attributes
+        //TODO Add status value validation
         @Id
         @GeneratedValue(generator="system-uuid")
         @GenericGenerator(name="system-uuid",

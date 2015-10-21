@@ -13,6 +13,7 @@ import java.util.Date;
 @Table(name="NOTIFICATION_ERRORS", schema="NOTIFY")
 public class NotificationError {
 
+    //TODO add not null attributes
     @Id
     @GeneratedValue(generator="system-uuid")
     @GenericGenerator(name="system-uuid",

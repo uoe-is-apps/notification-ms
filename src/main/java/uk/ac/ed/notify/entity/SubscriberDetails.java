@@ -12,6 +12,8 @@ import java.util.Date;
 @Table(name="SUBSCRIBER_DETAILS", schema = "NOTIFY")
 public class SubscriberDetails {
 
+    //TODO add not null attributes
+    //TODO Add status value validation
     @Id
     @Column(name="SUBSCRIBER_ID")
     private String subscriberId;

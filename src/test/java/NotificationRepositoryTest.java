@@ -91,4 +91,11 @@ public class NotificationRepositoryTest {
         notification = notificationRepository.findOne(notification.getNotificationId());
     }
 
+    @Test
+    public void testGetNotificationByPublisher()
+    {
+        //TODO Add get by publisher test, one valid, one invalid entity, test only one returned
+
+    }
+
 }

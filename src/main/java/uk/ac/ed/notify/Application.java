@@ -73,28 +73,4 @@ public class Application {
         return tomcat;
     }
 
-    @Configuration
-    @EnableResourceServer
-    static class OauthResourceServerConfiguration extends ResourceServerConfigurerAdapter {
-
-        @Override
-        public void configure(ResourceServerSecurityConfigurer resources) {
-
-            resources.resourceId("notification");
-
-        }
-
-        @Override
-        public void configure(HttpSecurity http) throws Exception {
-            http
-                    .authorizeRequests()
-                    .antMatchers("/", "/lib/*", "/images/*", "/css/*", "/swagger-ui.js", "/api-docs", "/fonts/*", "/api-docs/*", "/api-docs/default/*", "/o2c.html").permitAll()
-                    .antMatchers(HttpMethod.GET, "/notification/**").access("#oauth2.hasScope('notification.read')")
-                    .antMatchers(HttpMethod.POST, "/notification/**").access("#oauth2.hasScope('notification.write')")
-                    .antMatchers(HttpMethod.GET, "/usernotifications/**").access("#oauth2.hasScope('notification.read')")
-                    .anyRequest().authenticated();
-        }
-
-    }
-
 }
