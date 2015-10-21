@@ -1,4 +1,5 @@
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -6,10 +7,13 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
@@ -17,10 +21,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 import uk.ac.ed.notify.controller.NotificationController;
 import uk.ac.ed.notify.entity.Notification;
-import uk.ac.ed.notify.repository.NotificationErrorRepository;
-import uk.ac.ed.notify.repository.NotificationRepository;
-import uk.ac.ed.notify.repository.PublisherDetailsRepository;
-import uk.ac.ed.notify.repository.UserNotificationAuditRepository;
+import uk.ac.ed.notify.entity.TopicSubscription;
+import uk.ac.ed.notify.repository.*;
 
 
 import java.util.Date;
@@ -37,20 +39,23 @@ public class NotificationControllerTest {
 
     private String notificationId;
 
-    @Autowired
-    NotificationController notificationController;
+   /* @Autowired
+    NotificationController notificationController;*/
 
     @Autowired
     NotificationRepository notificationRepository;
 
-    @Autowired
-    PublisherDetailsRepository publisherDetailsRepository;
+   /* @Autowired
+    PublisherDetailsRepository publisherDetailsRepository;*/
 
     @Autowired
+    TopicSubscriptionRepository topicSubscriptionRepository;
+
+   /* @Autowired
     UserNotificationAuditRepository userNotificationAuditRepository;
 
     @Autowired
-    NotificationErrorRepository notificationErrorRepository;
+    NotificationErrorRepository notificationErrorRepository;*/
 
     @Autowired
     WebApplicationContext wac;
@@ -68,9 +73,24 @@ public class NotificationControllerTest {
         this.mockMvc = MockMvcBuilders.webAppContextSetup(wac).build();
         date = new Date();
         date.setTime(1445347648);
+
+    }
+
+    @After
+    public void cleanup()
+    {
+        notificationRepository.deleteAll();
+        topicSubscriptionRepository.deleteAll();
+    }
+
+
+
+    @Test
+    public void testGetNotification() throws Exception {
+
         Notification notification = new Notification();
         notification.setBody("<p>Test</p>");
-        notification.setCategory("TESTCATEGORY");
+        notification.setTopic("TESTCATEGORY");
         notification.setPublisherId("TESTPUB");
         notification.setPublisherNotificationId("12");
         notification.setTitle("TESTTITLE");
@@ -80,29 +100,83 @@ public class NotificationControllerTest {
         notification.setEndDate(date);
         notificationRepository.save(notification);
         notificationId = notification.getNotificationId();
-
-    }
-
-    @Test
-    public void testGetNotification() throws Exception {
-
         this.mockMvc.perform(get("/notification/" + notificationId))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title", is("TESTTITLE")))
                 .andExpect(jsonPath("$.body", is("<p>Test</p>")));
     }
 
     @Test
     public void testGetPublisherNotifications() throws Exception {
 
+        Notification notification = new Notification();
+        notification.setBody("<p>Test</p>");
+        notification.setTopic("TESTCATEGORY");
+        notification.setPublisherId("TESTPUB");
+        notification.setPublisherNotificationId("12");
+        notification.setTitle("TESTTITLE");
+        notification.setUrl("http://www.google.co.uk");
+        notification.setUun("TESTUUN");
+        notification.setStartDate(date);
+        notification.setEndDate(date);
+        notificationRepository.save(notification);
+        notificationId = notification.getNotificationId();
+        notification = new Notification();
+        notification.setBody("<p>Test Two</p>");
+        notification.setTopic("TESTCATEGORYTWO");
+        notification.setPublisherId("TESTPUB");
+        notification.setPublisherNotificationId("12");
+        notification.setTitle("TESTTITLETWO");
+        notification.setUrl("http://www.google.co.uk");
+        notification.setUun("TESTUUN");
+        notification.setStartDate(date);
+        notification.setEndDate(date);
+        notificationRepository.save(notification);
         this.mockMvc.perform(get("/notification/publisher/TESTPUB"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].body",is("<p>Test</p>")));
+                .andExpect(jsonPath("$", hasSize(2)))
+                .andExpect(jsonPath("$[0].body", is("<p>Test</p>")))
+                .andExpect(jsonPath("$[1].body", is("<p>Test Two</p>")));
 
     }
 
     @Test
-    public void testGetUserNotifications()
-    {
+    public void testGetUserNotifications() throws Exception {
+
+        Notification notification = new Notification();
+        notification.setBody("<p>Test</p>");
+        notification.setTopic("TESTCATEGORY");
+        notification.setPublisherId("TESTPUB");
+        notification.setPublisherNotificationId("12");
+        notification.setTitle("TESTTITLE");
+        notification.setUrl("http://www.google.co.uk");
+        notification.setUun("TESTUUN");
+        notification.setStartDate(date);
+        notification.setEndDate(date);
+        notificationRepository.save(notification);
+        notification = new Notification();
+        notification.setBody("<p>Test Two</p>");
+        notification.setTopic("TESTCATEGORYTWO");
+        notification.setPublisherId("TESTPUB");
+        notification.setPublisherNotificationId("12");
+        notification.setTitle("TESTTITLETWO");
+        notification.setUrl("http://www.google.co.uk");
+        notification.setUun("TESTUUN");
+        notification.setStartDate(date);
+        notification.setEndDate(date);
+        notificationRepository.save(notification);
+        TopicSubscription topicSubscription = new TopicSubscription();
+        topicSubscription.setStatus("A");
+        topicSubscription.setLastUpdated(new Date());
+        topicSubscription.setSubscriberId("TESTSUB");
+        topicSubscription.setTopic("TESTCATEGORYTWO");
+        topicSubscriptionRepository.save(topicSubscription);
+        this.mockMvc.perform(get("/usernotifications/TESTSUB").with((MockHttpServletRequest request) -> {
+            request.setParameter("user.login.id","TESTUUN");
+            return request;
+        }))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.categories[0].title",is("TESTCATEGORYTWO")));
 
     }
 

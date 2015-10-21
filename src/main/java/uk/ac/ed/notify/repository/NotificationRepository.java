@@ -14,4 +14,6 @@ public interface NotificationRepository extends CrudRepository<Notification,Stri
 
     public List<Notification> findByUun (String uun);
 
+    public List<Notification> findByUunAndTopic (String uun, String topic);
+
 }

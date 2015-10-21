@@ -1,3 +1,4 @@
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -8,6 +9,7 @@ import uk.ac.ed.notify.entity.TopicSubscription;
 import uk.ac.ed.notify.repository.TopicSubscriptionRepository;
 
 import java.util.Date;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -29,6 +31,12 @@ public class TopicSubscriptionRepositoryTest {
     {
         date = new Date();
         date.setTime(1445347648);
+    }
+
+    @After
+    public void cleanup()
+    {
+        topicSubscriptionRepository.deleteAll();
     }
 
     @Test
@@ -76,6 +84,20 @@ public class TopicSubscriptionRepositoryTest {
         topicSubscription = topicSubscriptionRepository.findOne(topicSubscription.getSubscriptionId());
         assertNull(topicSubscription);
 
+    }
+
+    @Test
+    public void testGetTopicSubscriptionBySubscriber()
+    {
+        TopicSubscription topicSubscription = new TopicSubscription();
+        topicSubscription.setSubscriberId("TESTSUB");
+        topicSubscription.setTopic("TEST TOPIC");
+        topicSubscription.setStatus("A");
+        topicSubscription.setLastUpdated(date);
+        topicSubscriptionRepository.save(topicSubscription);
+        List<TopicSubscription> topicSubscriptionList = topicSubscriptionRepository.findBySubscriberId("TESTSUB");
+        assertEquals(1,topicSubscriptionList.size());
+        assertEquals("TEST TOPIC",topicSubscriptionList.get(0).getTopic());
     }
 
 

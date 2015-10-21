@@ -9,9 +9,15 @@ import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.web.bind.annotation.*;
 import uk.ac.ed.notify.NotificationCategory;
 import uk.ac.ed.notify.NotificationEntry;
+import uk.ac.ed.notify.NotificationError;
 import uk.ac.ed.notify.NotificationResponse;
 import uk.ac.ed.notify.entity.Notification;
+import uk.ac.ed.notify.entity.SubscriberDetails;
+import uk.ac.ed.notify.entity.TopicSubscription;
 import uk.ac.ed.notify.repository.NotificationRepository;
+import uk.ac.ed.notify.repository.PublisherDetailsRepository;
+import uk.ac.ed.notify.repository.SubscriberDetailsRepository;
+import uk.ac.ed.notify.repository.TopicSubscriptionRepository;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -27,11 +33,24 @@ import java.util.List;
 @RestController
 public class NotificationController {
 
+    //TODO Logging
+    //TODO Audit
+    //TODO DB error logging
+
     @Value("${cache.expiry}")
     int cacheExpiry;
 
     @Autowired
     NotificationRepository notificationRepository;
+
+    @Autowired
+    PublisherDetailsRepository publisherDetailsRepository;
+
+    @Autowired
+    SubscriberDetailsRepository subscriberDetailsRepository;
+
+    @Autowired
+    TopicSubscriptionRepository topicSubscriptionRepository;
 
     @ApiOperation(value="Get a specific notification",notes="Requires notification id to look up",
     authorizations = {@Authorization(value="oauth2",scopes = {@AuthorizationScope(scope="notifications.read",description = "Read access to notification API")})})
@@ -43,10 +62,10 @@ public class NotificationController {
         {
             throw new ServletException("You must provide a notification-id");
         }
-         long expires = (new Date()).getTime()+cacheExpiry;
+        long expires = (new Date()).getTime()+cacheExpiry;
 
-         httpServletResponse.setHeader("cache-control", "public, max-age=" + cacheExpiry/1000 + ", cache");
-         httpServletResponse.setDateHeader("Expires", expires);
+        httpServletResponse.setHeader("cache-control", "public, max-age=" + cacheExpiry/1000 + ", cache");
+        httpServletResponse.setDateHeader("Expires", expires);
 
         return notificationRepository.findOne(notificationId);
     }
@@ -65,46 +84,66 @@ public class NotificationController {
     @RequestMapping(value="/notification/", method=RequestMethod.POST)
     public @ResponseBody Notification setNotification(@RequestBody Notification notification)
     {
-        System.out.println("Called setNotification");
         //TODO Check that publisher ID is valid
         //TODO Check that variables are valid
-        //TODO Add JSOUP Cleaner
         //TODO Add audit row
         //TODO Log errors
-
         notificationRepository.save(notification);
-        System.out.println("Saved notification");
         return notification;
     }
 
-    @ApiOperation(value="Get a list of categories containing notifications for a user",notes="Requires notification id to look up",
+    @ApiOperation(value="Get a list of categories containing notifications for a user",notes="Requires subcriber id to look up, and uun of user",
             authorizations = {@Authorization(value="oauth2",scopes = {@AuthorizationScope(scope="notifications.read",description = "Read access to notification API")})})
-    @RequestMapping(value="/usernotifications/user",method= RequestMethod.GET)
+    @RequestMapping(value="/usernotifications/{subscriber-id}",method= RequestMethod.GET)
     public @ResponseBody
-    NotificationResponse getNoticationByUser(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws ServletException
+    NotificationResponse getNoticationByUser(@PathVariable("subscriber-id") String subscriberId, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws ServletException
     {
+        String uun = httpServletRequest.getParameter("user.login.id");
 
-        System.out.println(httpServletRequest.getParameter("user.login.id"));
         NotificationResponse notificationResponse = new NotificationResponse();
-        /*List<NotificationError> errors = new ArrayList<NotificationError>();
-        errors.add(new NotificationError("error message", "source"));
-        notificationResponse.setErrors(errors);*/
 
-        List<NotificationCategory> categories = new ArrayList<NotificationCategory>();
-        NotificationCategory category = new NotificationCategory();
-        category.setTitle("title");
+        if (uun==null)
+        {
+            List<NotificationError> errors = new ArrayList<NotificationError>();
+            errors.add(new NotificationError("No UUN provided", "Notification Backbone"));
+            notificationResponse.setErrors(errors);
+            return notificationResponse;
+        }
 
-        List<NotificationEntry> entries = new ArrayList<NotificationEntry>();
-        NotificationEntry entry = new NotificationEntry();
-        entry.setBody("body");
-        entry.setTitle("test notification title");
-        entry.setDueDate(new Date());
+        try {
+            List<TopicSubscription> topicSubscriptionList = topicSubscriptionRepository.findBySubscriberId(subscriberId);
 
-        entries.add(entry);
-        category.setEntries(entries);
+            List<NotificationCategory> categories = new ArrayList<NotificationCategory>();
+            NotificationCategory category;
+            NotificationEntry entry;
+            List<Notification> notificationList;
+            List<NotificationEntry> entries;
+            for (TopicSubscription topicSubscription : topicSubscriptionList) {
+                category = new NotificationCategory();
+                category.setTitle(topicSubscription.getTopic());
+                entries = new ArrayList<NotificationEntry>();
+                notificationList = notificationRepository.findByUunAndTopic(uun, category.getTitle());
+                for (Notification notification : notificationList) {
+                    entry = new NotificationEntry();
+                    entry.setBody(notification.getBody());
+                    entry.setTitle(notification.getTitle());
+                    entry.setDueDate(notification.getEndDate());
+                    entry.setUrl(notification.getUrl());
+                    entries.add(entry);
+                }
 
-        categories.add(category);
-        notificationResponse.setCategories(categories);
+                category.setEntries(entries);
+                categories.add(category);
+            }
+            notificationResponse.setCategories(categories);
+
+        }
+        catch (Exception e)
+        {
+            List<NotificationError> errors = new ArrayList<NotificationError>();
+            errors.add(new NotificationError("Error while producing feed", "Notification Backbone"));
+            notificationResponse.setErrors(errors);
+        }
 
         return notificationResponse;
     }

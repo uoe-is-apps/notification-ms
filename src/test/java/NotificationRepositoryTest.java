@@ -1,3 +1,4 @@
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -8,6 +9,7 @@ import uk.ac.ed.notify.entity.Notification;
 import uk.ac.ed.notify.repository.NotificationRepository;
 
 import java.util.Date;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
@@ -30,12 +32,18 @@ public class NotificationRepositoryTest {
         date.setTime(1445347648);
     }
 
+    @After
+    public void cleanup()
+    {
+        notificationRepository.deleteAll();
+    }
+
     @Test
     public void testCreateNotification()
     {
         Notification notification = new Notification();
         notification.setBody("<p>Test</p>");
-        notification.setCategory("TESTCATEGORY");
+        notification.setTopic("TESTCATEGORY");
         notification.setPublisherId("TESTPUB");
         notification.setPublisherNotificationId("12");
         notification.setTitle("TESTTITLE");
@@ -52,7 +60,7 @@ public class NotificationRepositoryTest {
     {
         Notification notification = new Notification();
         notification.setBody("<p>Test</p>");
-        notification.setCategory("TESTCATEGORY");
+        notification.setTopic("TESTCATEGORY");
         notification.setPublisherId("TESTPUB");
         notification.setPublisherNotificationId("12");
         notification.setTitle("TESTTITLE");
@@ -63,7 +71,7 @@ public class NotificationRepositoryTest {
         notificationRepository.save(notification);
         notification = notificationRepository.findOne(notification.getNotificationId());
         assertEquals("<p>Test</p>",notification.getBody());
-        assertEquals("TESTCATEGORY",notification.getCategory());
+        assertEquals("TESTCATEGORY",notification.getTopic());
         assertEquals("TESTPUB",notification.getPublisherId());
         assertEquals("12",notification.getPublisherNotificationId());
         assertEquals("TESTTITLE",notification.getTitle());
@@ -78,7 +86,7 @@ public class NotificationRepositoryTest {
     {
         Notification notification = new Notification();
         notification.setBody("<p>Test</p>");
-        notification.setCategory("TESTCATEGORY");
+        notification.setTopic("TESTCATEGORY");
         notification.setPublisherId("TESTPUB");
         notification.setPublisherNotificationId("12");
         notification.setTitle("TESTTITLE");
@@ -94,8 +102,95 @@ public class NotificationRepositoryTest {
     @Test
     public void testGetNotificationByPublisher()
     {
-        //TODO Add get by publisher test, one valid, one invalid entity, test only one returned
+        Notification notification = new Notification();
+        notification.setBody("<p>Test</p>");
+        notification.setTopic("TESTCATEGORY");
+        notification.setPublisherId("TESTPUB");
+        notification.setPublisherNotificationId("12");
+        notification.setTitle("TESTTITLE");
+        notification.setUrl("http://www.google.co.uk");
+        notification.setUun("TESTUUN");
+        notification.setStartDate(date);
+        notification.setEndDate(date);
+        notificationRepository.save(notification);
+        notification = new Notification();
+        notification.setBody("<p>Test Two</p>");
+        notification.setTopic("TESTCATEGORY");
+        notification.setPublisherId("TESTPUBTWO");
+        notification.setPublisherNotificationId("12");
+        notification.setTitle("TESTTITLETWO");
+        notification.setUrl("http://www.google.co.uk");
+        notification.setUun("TESTUUN");
+        notification.setStartDate(date);
+        notification.setEndDate(date);
+        notificationRepository.save(notification);
+        List<Notification> notificationList = notificationRepository.findByPublisherId("TESTPUB");
+        assertEquals(1,notificationList.size());
+        assertEquals("TESTTITLE",notificationList.get(0).getTitle());
+    }
+
+    @Test
+    public void testGetNotificationByUun()
+    {
+        Notification notification = new Notification();
+        notification.setBody("<p>Test</p>");
+        notification.setTopic("TESTCATEGORY");
+        notification.setPublisherId("TESTPUB");
+        notification.setPublisherNotificationId("12");
+        notification.setTitle("TESTTITLE");
+        notification.setUrl("http://www.google.co.uk");
+        notification.setUun("TESTUUN");
+        notification.setStartDate(date);
+        notification.setEndDate(date);
+        notificationRepository.save(notification);
+        notification = new Notification();
+        notification.setBody("<p>Test Two</p>");
+        notification.setTopic("TESTCATEGORYTWO");
+        notification.setPublisherId("TESTPUBTWO");
+        notification.setPublisherNotificationId("12");
+        notification.setTitle("TESTTITLETWO");
+        notification.setUrl("http://www.google.co.uk");
+        notification.setUun("TESTUUN");
+        notification.setStartDate(date);
+        notification.setEndDate(date);
+        notificationRepository.save(notification);
+        List<Notification> notificationList = notificationRepository.findByUun("TESTUUN");
+        assertEquals(2,notificationList.size());
+        assertEquals("TESTTITLE",notificationList.get(0).getTitle());
+        assertEquals("TESTTITLETWO",notificationList.get(1).getTitle());
+    }
+
+    @Test
+    public void testGetNotificationByUunAndTopic()
+    {
+        Notification notification = new Notification();
+        notification.setBody("<p>Test</p>");
+        notification.setTopic("TESTCATEGORY");
+        notification.setPublisherId("TESTPUB");
+        notification.setPublisherNotificationId("12");
+        notification.setTitle("TESTTITLE");
+        notification.setUrl("http://www.google.co.uk");
+        notification.setUun("TESTUUN");
+        notification.setStartDate(date);
+        notification.setEndDate(date);
+        notificationRepository.save(notification);
+        notification = new Notification();
+        notification.setBody("<p>Test Two</p>");
+        notification.setTopic("TESTCATEGORYTWO");
+        notification.setPublisherId("TESTPUBTWO");
+        notification.setPublisherNotificationId("12");
+        notification.setTitle("TESTTITLETWO");
+        notification.setUrl("http://www.google.co.uk");
+        notification.setUun("TESTUUN");
+        notification.setStartDate(date);
+        notification.setEndDate(date);
+        notificationRepository.save(notification);
+        List<Notification> notificationList = notificationRepository.findByUunAndTopic("TESTUUN", "TESTCATEGORY");
+        assertEquals(1,notificationList.size());
+        assertEquals("TESTTITLE",notificationList.get(0).getTitle());
 
     }
+
+
 
 }

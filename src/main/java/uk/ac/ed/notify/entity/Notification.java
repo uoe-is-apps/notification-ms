@@ -14,7 +14,11 @@ import java.util.Date;
 @Entity
 @Table(name="NOTIFICATIONS", schema = "NOTIFY")
 @NamedQueries({
-       @NamedQuery(name = "Notification.findByPublisherId", query = "SELECT a FROM Notification a WHERE a.publisherId = (?1)")
+        @NamedQuery(name = "Notification.findByPublisherId", query = "SELECT a FROM Notification a WHERE a.publisherId = (?1)"),
+        @NamedQuery(name = "Notification.findByUun", query = "SELECT a FROM Notification a WHERE a.uun = (?1)"),
+        @NamedQuery(name = "Notification.findByUunAndTopic", query = "SELECT a FROM Notification a WHERE a.uun = (?1) and a.topic = (?2)")
+
+
 })
 public class Notification {
 
@@ -34,7 +38,7 @@ public class Notification {
         private String publisherNotificationId;
 
         @Column(name="TOPIC")
-        private String category;
+        private String topic;
 
         @Column(name="TITLE")
         private String title;
@@ -87,18 +91,18 @@ public class Notification {
                 this.publisherNotificationId = publisherNotificationId;
         }
 
-        public String getCategory() {
-                return category;
+        public String getTopic() {
+                return topic;
         }
 
-        public void setCategory(String category) {
+        public void setTopic(String topic) {
 
-                String cleaned = Jsoup.clean(category,Whitelist.basic());
-                if (!cleaned.equals(category))
+                String cleaned = Jsoup.clean(topic,Whitelist.basic());
+                if (!cleaned.equals(topic))
                 {
                         //TODO Add audit
                 }
-                this.category = cleaned;
+                this.topic = cleaned;
         }
 
         public String getTitle() {

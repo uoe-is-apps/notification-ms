@@ -11,6 +11,9 @@ import java.util.Date;
  */
 @Entity
 @Table(name="TOPIC_SUBSCRIPTIONS",schema = "NOTIFY")
+@NamedQueries({
+        @NamedQuery(name = "TopicSubscription.findBySubscriberId", query = "SELECT a FROM TopicSubscription a WHERE a.subscriberId = (?1)")
+})
 public class TopicSubscription {
 
     //TODO add not null attributes
