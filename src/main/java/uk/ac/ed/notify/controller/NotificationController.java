@@ -12,6 +12,7 @@ import uk.ac.ed.notify.NotificationEntry;
 import uk.ac.ed.notify.NotificationError;
 import uk.ac.ed.notify.NotificationResponse;
 import uk.ac.ed.notify.entity.Notification;
+import uk.ac.ed.notify.entity.PublisherDetails;
 import uk.ac.ed.notify.entity.SubscriberDetails;
 import uk.ac.ed.notify.entity.TopicSubscription;
 import uk.ac.ed.notify.repository.NotificationRepository;
@@ -73,8 +74,13 @@ public class NotificationController {
     @ApiOperation(value="Get a specific notification",notes="Gets all notifications for a specific publisher",
             authorizations = {@Authorization(value="oauth2",scopes = {@AuthorizationScope(scope="notifications.read",description = "Read access to notification API")})})
     @RequestMapping(value="/notification/publisher/{publisher-id}",method = RequestMethod.GET)
-    public @ResponseBody List<Notification> getPublisherNotifications(@PathVariable("publisher-id") String publisherId,Principal principal,HttpServletRequest request,OAuth2Authentication authentication)
-    {
+    public @ResponseBody List<Notification> getPublisherNotifications(@PathVariable("publisher-id") String publisherId,Principal principal,HttpServletRequest request,OAuth2Authentication authentication) throws ServletException {
+
+        PublisherDetails publisherDetails = publisherDetailsRepository.findOne(publisherId);
+        if (publisherDetails==null||!publisherDetails.getStatus().equals("A"))
+        {
+            throw new ServletException("Invalid publisher or publisher is inactive");
+        }
         //TODO restrict to client = publisherId
         return notificationRepository.findByPublisherId(publisherId);
     }
@@ -90,6 +96,31 @@ public class NotificationController {
         //TODO Log errors
         notificationRepository.save(notification);
         return notification;
+    }
+
+    @RequestMapping(value="/notification/{notification-id}",method=RequestMethod.PUT)
+    public void updateNotification(@PathVariable("notification-id") String notificationId, @RequestBody Notification notification) throws ServletException {
+        //TODO Add publisher validation checks
+        //TODO Add audit row
+        //TODO Log errors
+        if (!notificationId.equals(notification.getNotificationId()))
+        {
+            System.out.println(notification.getNotificationId());
+            System.out.println(notificationId);
+            throw new ServletException("Notification Id and notification body do not match");
+        }
+        notificationRepository.save(notification);
+    }
+
+    @ApiOperation(value="Delete a notification",notes="Requires a valid notification-id",
+            authorizations = {@Authorization(value="oauth2",scopes = {@AuthorizationScope(scope="notifications.write",description = "Write access to notification API")})})
+    @RequestMapping(value="/notification/{notification-id}",method=RequestMethod.DELETE)
+    public void deleteNotification(@PathVariable("notification-id") String notificationId)
+    {
+        //TODO Add publisher validation checks
+        //TODO Add audit row
+        //TODO Log errors
+        notificationRepository.delete(notificationId);
     }
 
     @ApiOperation(value="Get a list of categories containing notifications for a user",notes="Requires subcriber id to look up, and uun of user",
