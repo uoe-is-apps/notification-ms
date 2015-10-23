@@ -134,7 +134,7 @@
                 <packaging.type>war</packaging.type>
             </properties>
             <build>
-                <finalName>notification-ms</finalName>
+                <finalName>ROOT</finalName>
             </build>
             <dependencies>
                 <dependency>
