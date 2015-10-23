@@ -6,6 +6,7 @@ import com.mangofactory.swagger.models.dto.builder.OAuthBuilder;
 import com.mangofactory.swagger.plugin.EnableSwagger;
 import com.mangofactory.swagger.plugin.SwaggerSpringMvcPlugin;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,6 +22,9 @@ import java.util.List;
 @EnableAutoConfiguration
 public class SwaggerConfig {
 
+
+    @Value("${swagger.oauth.url}")
+    private String swaggerOAuthUrl;
 
 
     private SpringSwaggerConfig springSwaggerConfig;
@@ -58,7 +62,7 @@ public class SwaggerConfig {
         scopes.add(new AuthorizationScope("notification.write","Write access on the notification API"));
 
         List<GrantType> grantTypes = new ArrayList<>();
-        ImplicitGrant implicitGrant = new ImplicitGrant(new LoginEndpoint("http://localhost:8080/uaa/oauth/authorize"),"access_code");
+        ImplicitGrant implicitGrant = new ImplicitGrant(new LoginEndpoint(swaggerOAuthUrl),"access_code");
         grantTypes.add(implicitGrant);
 
         AuthorizationType oauth = new OAuthBuilder()
