@@ -32,10 +32,6 @@ public class NotificationController {
 
     private static final Logger logger = LoggerFactory.getLogger(NotificationController.class);
 
-    //TODO Logging
-    //TODO Audit
-    //TODO DB error logging
-
     @Value("${cache.expiry}")
     int cacheExpiry;
 
@@ -103,8 +99,7 @@ public class NotificationController {
             authorizations = {@Authorization(value="oauth2",scopes = {@AuthorizationScope(scope="notifications.write",description = "Write access to notification API")})})
     @RequestMapping(value="/notification/", method=RequestMethod.POST)
     public @ResponseBody Notification setNotification(@RequestBody Notification notification) throws ServletException {
-        //TODO Check that publisher ID is valid
-        //TODO Check that variables are valid
+
         try
         {
             notificationRepository.save(notification);
@@ -131,7 +126,7 @@ public class NotificationController {
 
     @RequestMapping(value="/notification/{notification-id}",method=RequestMethod.PUT)
     public void updateNotification(@PathVariable("notification-id") String notificationId, @RequestBody Notification notification) throws ServletException {
-        //TODO Add publisher validation checks
+
         if (!notificationId.equals(notification.getNotificationId()))
         {
             throw new ServletException("Notification Id and notification body do not match");
@@ -163,7 +158,7 @@ public class NotificationController {
             authorizations = {@Authorization(value="oauth2",scopes = {@AuthorizationScope(scope="notifications.write",description = "Write access to notification API")})})
     @RequestMapping(value="/notification/{notification-id}",method=RequestMethod.DELETE)
     public void deleteNotification(@PathVariable("notification-id") String notificationId) throws ServletException {
-        //TODO Add publisher validation checks
+
         try
         {
             Notification notification = notificationRepository.findOne(notificationId);

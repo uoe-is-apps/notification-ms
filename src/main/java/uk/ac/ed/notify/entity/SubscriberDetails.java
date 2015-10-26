@@ -12,10 +12,9 @@ import java.util.Date;
 @Table(name="SUBSCRIBER_DETAILS", schema = "NOTIFY")
 public class SubscriberDetails {
 
-    //TODO add not null attributes
     //TODO Add status value validation
     @Id
-    @Column(name="SUBSCRIBER_ID")
+    @Column(name="SUBSCRIBER_ID", nullable = false)
     private String subscriberId;
 
     @Column(name = "SUBSCRIBER_DESCRIPTION")

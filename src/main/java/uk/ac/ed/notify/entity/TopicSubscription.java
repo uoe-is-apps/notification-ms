@@ -16,23 +16,22 @@ import java.util.Date;
 })
 public class TopicSubscription {
 
-    //TODO add not null attributes
     //TODO Add status value validation
     @Id
     @GeneratedValue(generator="system-uuid")
     @GenericGenerator(name="system-uuid",
             strategy = "uuid")
-    @Column(name="SUBSCRIPTION_ID")
+    @Column(name="SUBSCRIPTION_ID", nullable = false)
     private String subscriptionId;
 
-    @Column(name="SUBSCRIBER_ID")
+    @Column(name="SUBSCRIBER_ID", nullable = false)
     private String subscriberId;
 
-    @Column(name="TOPIC")
+    @Column(name="TOPIC", nullable = false)
     private String topic;
 
 
-    @Column(name="STATUS")
+    @Column(name="STATUS", nullable = false)
     private String status;
 
     @JsonSerialize(using=DatePartSerializer.class)

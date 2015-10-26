@@ -12,10 +12,9 @@ import java.util.Date;
 @Table(name="PUBLISHER_DETAILS", schema = "NOTIFY")
 public class PublisherDetails {
 
-    //TODO add not null attributes
     //TODO Add status value validation
     @Id
-    @Column(name="PUBLISHER_ID")
+    @Column(name="PUBLISHER_ID", nullable = false)
     private String publisherId;
 
     @Column(name="PUBLISHER_DESCRIPTION")
@@ -24,10 +23,10 @@ public class PublisherDetails {
     @Column(name="PUBLISHER_KEY")
     private String key;
 
-    @Column(name="PUBLISHER_TYPE")
+    @Column(name="PUBLISHER_TYPE", nullable = false)
     private String publisherType;
 
-    @Column(name="STATUS")
+    @Column(name="STATUS", nullable = false)
     private String status;
 
     @JsonSerialize(using=DatePartSerializer.class)

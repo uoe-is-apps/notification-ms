@@ -13,18 +13,17 @@ import java.util.Date;
 @Table(name="NOTIFICATION_ERRORS", schema="NOTIFY")
 public class NotificationError {
 
-    //TODO add not null attributes
     @Id
     @GeneratedValue(generator="system-uuid")
     @GenericGenerator(name="system-uuid",
             strategy = "uuid")
-    @Column(name="ERROR_ID")
+    @Column(name="ERROR_ID", nullable = false)
     private String errorId;
 
-    @Column(name="ERROR_CODE")
+    @Column(name="ERROR_CODE", nullable = false)
     private String errorCode;
 
-    @Column(name="ERROR_DESCRIPTION")
+    @Column(name="ERROR_DESCRIPTION", nullable = false)
     private String errorDescription;
 
     @JsonSerialize(using=DatePartSerializer.class)

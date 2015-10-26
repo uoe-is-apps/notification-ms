@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ed.notify.repository.UserNotificationAuditRepository;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 import java.util.Date;
 
 /**
@@ -26,28 +27,28 @@ public class Notification {
         @Transient
         UserNotificationAuditRepository userNotificationAuditRepository;
 
-        //TODO add not null attributes
         //TODO Add status value validation
         @Id
         @GeneratedValue(generator="system-uuid")
         @GenericGenerator(name="system-uuid",
                 strategy = "uuid")
-        @Column(name="NOTIFICATION_ID")
+        @Column(name="NOTIFICATION_ID", nullable = false)
         private String notificationId;
 
-        @Column(name="PUBLISHER_ID")
+        @Column(name="PUBLISHER_ID", nullable = false)
         private String publisherId;
 
         @Column(name="PUBLISHER_NOTIFICATION_ID")
         private String publisherNotificationId;
 
-        @Column(name="TOPIC")
+        @Column(name="TOPIC", nullable = false)
         private String topic;
 
-        @Column(name="TITLE")
+        @Column(name="TITLE", nullable = false)
         private String title;
 
-        @Column(name="NOTIFICATION_BODY")
+
+        @Column(name="NOTIFICATION_BODY", nullable = false)
         private String body;
 
         @Column(name="NOTIFICATION_URL")
