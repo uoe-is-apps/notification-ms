@@ -72,11 +72,11 @@ public class NotificationController {
         return notificationRepository.findOne(notificationId);
     }
 
-    @ApiOperation(value="Get a specific notification",notes="Gets all notifications for a specific publisher",
+    @ApiOperation(value="Get all publisher notifiations",notes="Gets all notifications for a specific publisher",
             authorizations = {@Authorization(value="oauth2",scopes = {@AuthorizationScope(scope="notifications.read",description = "Read access to notification API")})})
     @RequestMapping(value="/notification/publisher/{publisher-id}",method = RequestMethod.GET)
     public @ResponseBody List<Notification> getPublisherNotifications(@PathVariable("publisher-id") String publisherId,Principal principal,HttpServletRequest request,OAuth2Authentication authentication) throws ServletException {
-
+//TODO Remove principal nad authentication objects from method if they're not to be used.
         PublisherDetails publisherDetails = publisherDetailsRepository.findOne(publisherId);
         if (publisherDetails==null||!publisherDetails.getStatus().equals("A"))
         {
@@ -124,6 +124,8 @@ public class NotificationController {
 
     }
 
+    @ApiOperation(value="Update notification",notes="Requires a valid notification object",
+            authorizations = {@Authorization(value="oauth2",scopes = {@AuthorizationScope(scope="notifications.write",description = "Write access to notification API")})})
     @RequestMapping(value="/notification/{notification-id}",method=RequestMethod.PUT)
     public void updateNotification(@PathVariable("notification-id") String notificationId, @RequestBody Notification notification) throws ServletException {
 
