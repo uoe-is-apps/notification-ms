@@ -59,6 +59,7 @@ public class SwaggerConfig {
         List<AuthorizationType> authorizationTypes = new ArrayList<>();
         List<AuthorizationScope> scopes = new ArrayList<>();
         scopes.add(new AuthorizationScope("notification.read","Read access on the notification API"));
+        scopes.add(new AuthorizationScope("notification.write","Write access on the notification API"));
 
         List<GrantType> grantTypes = new ArrayList<>();
         ImplicitGrant implicitGrant = new ImplicitGrant(new LoginEndpoint(swaggerOAuthUrl),"access_code");
