@@ -22,6 +22,7 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 import uk.ac.ed.notify.entity.*;
@@ -39,6 +40,7 @@ import java.util.Date;
 public class NotificationControllerTest {
 
     private Date date;
+    private Date dateFuture;
 
     private String notificationId;
 
@@ -76,6 +78,8 @@ public class NotificationControllerTest {
         this.mockMvc = MockMvcBuilders.webAppContextSetup(wac).build();
         date = new Date();
         date.setTime(1445347648);
+        dateFuture = new Date();
+        dateFuture.setTime(dateFuture.getTime()+100000);
 
     }
 
@@ -294,7 +298,41 @@ public class NotificationControllerTest {
 
     }
 
+    @Test
+    public void testGetEmergencyNotifications() throws Exception {
 
+        Notification notification = new Notification();
+        notification.setBody("<p>Test</p>");
+        notification.setTopic("Emergency");
+        notification.setPublisherId("notify-ui");
+        notification.setPublisherNotificationId("12");
+        notification.setTitle("TESTTITLE");
+        notification.setUrl("http://www.google.co.uk");
+        notification.setUun("TESTUUN");
+        notification.setStartDate(date);
+        notification.setEndDate(dateFuture);
+        notificationRepository.save(notification);
+        notification = new Notification();
+        notification.setBody("<p>Test Two</p>");
+        notification.setTopic("Emergency");
+        notification.setPublisherId("notify-ui");
+        notification.setPublisherNotificationId("12");
+        notification.setTitle("TESTTITLETWO");
+        notification.setUrl("http://www.google.co.uk");
+        notification.setUun("TESTUUN");
+        notification.setStartDate(date);
+        notification.setEndDate(dateFuture);
+        notificationRepository.save(notification);
+
+        this.mockMvc.perform(get("/emergencynotifications").with((MockHttpServletRequest request) -> {
+            request.setParameter("user.login.id", "TESTUUN");
+            return request;
+        }))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.categories[0].title", is("Emergency")))
+                .andExpect(jsonPath("$.categories[0].entries[0].title",is("TESTTITLE")))
+                .andExpect(jsonPath("$.categories[0].entries[1].title",is("TESTTITLETWO")));
+    }
 
 
 }

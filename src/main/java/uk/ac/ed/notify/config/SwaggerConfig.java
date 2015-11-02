@@ -49,7 +49,7 @@ public class SwaggerConfig {
                         //Here we disable auto generating of responses for REST-endpoints
                 .useDefaultResponseMessages(false)
                         //Here we specify URI patterns which will be included in Swagger docs. Use regex for this purpose.
-                .includePatterns("/usernotifications/user","/notification/.*")
+                .includePatterns("/usernotifications/*","/notification/.*","/emergencynotifications")
                 .authorizationTypes(getAuthorizationTypes());
 
     }
@@ -59,7 +59,6 @@ public class SwaggerConfig {
         List<AuthorizationType> authorizationTypes = new ArrayList<>();
         List<AuthorizationScope> scopes = new ArrayList<>();
         scopes.add(new AuthorizationScope("notification.read","Read access on the notification API"));
-        scopes.add(new AuthorizationScope("notification.write","Write access on the notification API"));
 
         List<GrantType> grantTypes = new ArrayList<>();
         ImplicitGrant implicitGrant = new ImplicitGrant(new LoginEndpoint(swaggerOAuthUrl),"access_code");

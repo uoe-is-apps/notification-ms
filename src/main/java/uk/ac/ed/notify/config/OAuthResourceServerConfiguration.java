@@ -31,6 +31,7 @@ public class OAuthResourceServerConfiguration extends ResourceServerConfigurerAd
                 .antMatchers(HttpMethod.PUT, "/notification/**").access("#oauth2.hasScope('notification.write')")
                 .antMatchers(HttpMethod.DELETE, "/notification/**").access("#oauth2.hasScope('notification.write')")
                 .antMatchers(HttpMethod.GET, "/usernotifications/**").access("#oauth2.hasScope('notification.read')")
+                .antMatchers(HttpMethod.GET, "/emergencynotifications").access("#oauth2.hasScope('notification.read')")
                 .anyRequest().authenticated();
     }
 

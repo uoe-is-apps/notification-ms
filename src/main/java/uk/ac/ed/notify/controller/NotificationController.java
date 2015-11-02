@@ -185,11 +185,13 @@ public class NotificationController {
 
     }
 
+
+
     @ApiOperation(value="Get a list of categories containing notifications for a user",notes="Requires subcriber id to look up, and uun of user",
             authorizations = {@Authorization(value="oauth2",scopes = {@AuthorizationScope(scope="notifications.read",description = "Read access to notification API")})})
     @RequestMapping(value="/usernotifications/{subscriber-id}",method= RequestMethod.GET)
     public @ResponseBody
-    NotificationResponse getNoticationByUser(@PathVariable("subscriber-id") String subscriberId, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
+    NotificationResponse getUserNotificationsBySubscription(@PathVariable("subscriber-id") String subscriberId, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
         String uun = httpServletRequest.getParameter("user.login.id");
 
         NotificationResponse notificationResponse = new NotificationResponse();
@@ -215,6 +217,7 @@ public class NotificationController {
         try {
             List<TopicSubscription> topicSubscriptionList = topicSubscriptionRepository.findBySubscriberId(subscriberId);
 
+            Date dateNow = new Date();
             List<NotificationCategory> categories = new ArrayList<NotificationCategory>();
             NotificationCategory category;
             NotificationEntry entry;
@@ -224,7 +227,7 @@ public class NotificationController {
                 category = new NotificationCategory();
                 category.setTitle(topicSubscription.getTopic());
                 entries = new ArrayList<NotificationEntry>();
-                notificationList = notificationRepository.findByUunAndTopic(uun, category.getTitle());
+                notificationList = notificationRepository.findByUunTopicAndDate(uun, category.getTitle(), dateNow);
                 for (Notification notification : notificationList) {
                     entry = new NotificationEntry();
                     entry.setBody(notification.getBody());
@@ -237,12 +240,72 @@ public class NotificationController {
                 category.setEntries(entries);
                 categories.add(category);
             }
+
             notificationResponse.setCategories(categories);
 
         }
         catch (Exception e)
         {
             logger.error("Error building user notifications",e);
+            uk.ac.ed.notify.entity.NotificationError notificationError = new uk.ac.ed.notify.entity.NotificationError();
+            notificationError.setErrorCode(ErrorCodes.GET_ERROR);
+            notificationError.setErrorDescription(e.getMessage());
+            notificationError.setErrorDate(new Date());
+            notificationErrorRepository.save(notificationError);
+            List<NotificationError> errors = new ArrayList<NotificationError>();
+            errors.add(new NotificationError("Error while producing feed", "Notification Backbone"));
+            notificationResponse.setErrors(errors);
+        }
+
+        return notificationResponse;
+    }
+
+    @ApiOperation(value="Get all emergency notifications",notes="Requires uun of user",
+            authorizations = {@Authorization(value="oauth2",scopes = {@AuthorizationScope(scope="notifications.read",description = "Read access to notification API")})})
+    @RequestMapping(value="/emergencynotifications",method= RequestMethod.GET)
+    public @ResponseBody
+    NotificationResponse getEmergencyNotifications(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
+
+        String uun = httpServletRequest.getParameter("user.login.id");
+
+        NotificationResponse notificationResponse = new NotificationResponse();
+
+        if (uun == null) {
+            List<NotificationError> errors = new ArrayList<NotificationError>();
+            errors.add(new NotificationError("No UUN provided", "Notification Backbone"));
+            notificationResponse.setErrors(errors);
+            return notificationResponse;
+        }
+
+        try {
+
+            Date dateNow = new Date();
+            List<NotificationCategory> categories = new ArrayList<NotificationCategory>();
+            NotificationCategory category;
+            NotificationEntry entry;
+            List<Notification> notificationList;
+            List<NotificationEntry> entries;
+
+            category = new NotificationCategory();
+            category.setTitle("Emergency");
+            entries = new ArrayList<NotificationEntry>();
+            notificationList = notificationRepository.findByPublisherIdAndDate("notify-ui", dateNow);
+            for (Notification notification : notificationList) {
+                entry = new NotificationEntry();
+                entry.setBody(notification.getBody());
+                entry.setTitle(notification.getTitle());
+                entry.setDueDate(notification.getEndDate());
+                entry.setUrl(notification.getUrl());
+                entries.add(entry);
+            }
+
+            category.setEntries(entries);
+            categories.add(category);
+
+            notificationResponse.setCategories(categories);
+
+        } catch (Exception e) {
+            logger.error("Error building user notifications", e);
             uk.ac.ed.notify.entity.NotificationError notificationError = new uk.ac.ed.notify.entity.NotificationError();
             notificationError.setErrorCode(ErrorCodes.GET_ERROR);
             notificationError.setErrorDescription(e.getMessage());
