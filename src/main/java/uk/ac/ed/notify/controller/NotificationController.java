@@ -201,6 +201,13 @@ public class NotificationController {
             logger.info(parameterNames.nextElement());
         }
 
+        Enumeration<String> attributes = httpServletRequest.getAttributeNames();
+
+        while (attributes.hasMoreElements())
+        {
+            logger.info(attributes.nextElement());
+        }
+
         NotificationResponse notificationResponse = new NotificationResponse();
 
         if (uun==null)
