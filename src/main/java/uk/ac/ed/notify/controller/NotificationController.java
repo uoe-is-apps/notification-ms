@@ -194,6 +194,8 @@ public class NotificationController {
     NotificationResponse getUserNotificationsBySubscription(@PathVariable("subscriber-id") String subscriberId, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
         String uun = httpServletRequest.getParameter("user.login.id");
 
+        logger.info(httpServletRequest.getParameterNames().toString());
+
         NotificationResponse notificationResponse = new NotificationResponse();
 
         if (uun==null)
