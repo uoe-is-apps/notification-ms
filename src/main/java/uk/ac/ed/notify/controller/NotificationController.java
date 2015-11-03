@@ -22,6 +22,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.List;
 
 /**
@@ -194,7 +195,11 @@ public class NotificationController {
     NotificationResponse getUserNotificationsBySubscription(@PathVariable("subscriber-id") String subscriberId, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
         String uun = httpServletRequest.getParameter("user.login.id");
 
-        logger.info(httpServletRequest.getParameterNames().toString());
+        Enumeration<String> parameterNames = httpServletRequest.getParameterNames();
+
+        while (parameterNames.hasMoreElements()) {
+            logger.info(parameterNames.nextElement());
+        }
 
         NotificationResponse notificationResponse = new NotificationResponse();
 
