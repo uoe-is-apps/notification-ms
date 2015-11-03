@@ -40,7 +40,7 @@ public class SwaggerConfig {
                 //This info will be used in Swagger. See realisation of ApiInfo for more details.
                 .apiInfo(new ApiInfo(
                         "Notification Backbone JSON API",
-                        "This service provides the ability for publishers and subscribers to create/edit/delete/view notificaitons as appropriate.",
+                        "This service provides the ability for publishers and subscribers to create/edit/delete/view notifications as appropriate.",
                         null,
                         null,
                         null,

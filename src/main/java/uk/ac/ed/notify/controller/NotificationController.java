@@ -260,22 +260,14 @@ public class NotificationController {
         return notificationResponse;
     }
 
-    @ApiOperation(value="Get all emergency notifications",notes="Requires uun of user",
+    @ApiOperation(value="Get all emergency notifications",notes="Independant of users",
             authorizations = {@Authorization(value="oauth2",scopes = {@AuthorizationScope(scope="notifications.read",description = "Read access to notification API")})})
     @RequestMapping(value="/emergencynotifications",method= RequestMethod.GET)
     public @ResponseBody
     NotificationResponse getEmergencyNotifications(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
 
-        String uun = httpServletRequest.getParameter("user.login.id");
 
         NotificationResponse notificationResponse = new NotificationResponse();
-
-        if (uun == null) {
-            List<NotificationError> errors = new ArrayList<NotificationError>();
-            errors.add(new NotificationError("No UUN provided", "Notification Backbone"));
-            notificationResponse.setErrors(errors);
-            return notificationResponse;
-        }
 
         try {
 
