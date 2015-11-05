@@ -195,19 +195,6 @@ public class NotificationController {
     NotificationResponse getUserNotificationsBySubscription(@PathVariable("subscriber-id") String subscriberId, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
         String uun = httpServletRequest.getParameter("user.login.id");
 
-        Enumeration<String> parameterNames = httpServletRequest.getParameterNames();
-
-        while (parameterNames.hasMoreElements()) {
-            logger.info(parameterNames.nextElement());
-        }
-
-        Enumeration<String> attributes = httpServletRequest.getAttributeNames();
-
-        while (attributes.hasMoreElements())
-        {
-            logger.info(attributes.nextElement());
-        }
-
         NotificationResponse notificationResponse = new NotificationResponse();
 
         if (uun==null)
@@ -252,7 +239,11 @@ public class NotificationController {
                 }
 
                 category.setEntries(entries);
-                categories.add(category);
+                if (entries.size()>0)
+                {
+                    categories.add(category);
+                }
+
             }
 
             notificationResponse.setCategories(categories);
