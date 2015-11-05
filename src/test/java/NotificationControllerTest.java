@@ -183,7 +183,7 @@ public class NotificationControllerTest {
         notification.setUrl("http://www.google.co.uk");
         notification.setUun("TESTUUN");
         notification.setStartDate(date);
-        notification.setEndDate(date);
+        notification.setEndDate(null);
         notificationRepository.save(notification);
         TopicSubscription topicSubscription = new TopicSubscription();
         topicSubscription.setStatus("A");

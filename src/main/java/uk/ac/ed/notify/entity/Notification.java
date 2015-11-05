@@ -22,7 +22,7 @@ import java.util.Date;
         @NamedQuery(name = "Notification.findByUun", query = "SELECT a FROM Notification a WHERE a.uun = (?1)"),
         @NamedQuery(name = "Notification.findByUunAndDate", query = "SELECT a FROM Notification a WHERE a.uun = (?1) and a.startDate <=(?2) and a.endDate >= (?2)"),
         @NamedQuery(name = "Notification.findByUunAndTopic", query = "SELECT a FROM Notification a WHERE a.uun = (?1) and a.topic = (?2)"),
-        @NamedQuery(name = "Notification.findByUunTopicAndDate", query = "SELECT a FROM Notification a WHERE a.uun = (?1) and a.topic = (?2) and a.startDate <=(?3) and a.endDate >= (?3)")
+        @NamedQuery(name = "Notification.findByUunTopicAndDate", query = "SELECT a FROM Notification a WHERE a.uun = (?1) and a.topic = (?2) and a.startDate <=(?3) and a.endDate >= (?3) or a.endDate = NULL")
 })
 public class Notification {
 

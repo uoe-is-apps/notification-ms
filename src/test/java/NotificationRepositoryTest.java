@@ -269,6 +269,49 @@ public class NotificationRepositoryTest {
     }
 
     @Test
+    public void testNotificationByUUnTopicAndNullDate()
+    {
+        Notification notification = new Notification();
+        notification.setBody("<p>Test</p>");
+        notification.setTopic("TESTCATEGORY");
+        notification.setPublisherId("TESTPUB");
+        notification.setPublisherNotificationId("12");
+        notification.setTitle("TESTTITLE");
+        notification.setUrl("http://www.google.co.uk");
+        notification.setUun("TESTUUN");
+        notification.setStartDate(date);
+        notification.setEndDate(dateFuture);
+        notificationRepository.save(notification);
+        notification = new Notification();
+        notification.setBody("<p>Test Two</p>");
+        notification.setTopic("TESTCATEGORYTWO");
+        notification.setPublisherId("TESTPUBTWO");
+        notification.setPublisherNotificationId("12");
+        notification.setTitle("TESTTITLETWO");
+        notification.setUrl("http://www.google.co.uk");
+        notification.setUun("TESTUUN");
+        notification.setStartDate(date);
+        notification.setEndDate(date);
+        notificationRepository.save(notification);
+        notification = new Notification();
+        notification.setBody("<p>Test Two</p>");
+        notification.setTopic("TESTCATEGORYTWO");
+        notification.setPublisherId("TESTPUBTWO");
+        notification.setPublisherNotificationId("12");
+        notification.setTitle("TESTTITLETHREE");
+        notification.setUrl("http://www.google.co.uk");
+        notification.setUun("TESTUUN");
+        notification.setStartDate(date);
+        notification.setEndDate(null);
+        notificationRepository.save(notification);
+
+        List<Notification> results = notificationRepository.findByUunTopicAndDate("TESTUUN","TESTCATEGORYTWO",new Date());
+        assertEquals(1,results.size());
+        assertEquals("TESTTITLETHREE",results.get(0).getTitle());
+
+    }
+
+    @Test
     public void testNotificationByPublisherAndDate()
     {
         Notification notification = new Notification();
@@ -299,6 +342,7 @@ public class NotificationRepositoryTest {
         assertEquals("TESTTITLETWO",results.get(0).getTitle());
 
     }
+
 
 
 
