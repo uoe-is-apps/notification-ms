@@ -18,9 +18,9 @@ import java.util.Date;
 @Table(name="NOTIFICATIONS", schema = "NOTIFY")
 @NamedQueries({
         @NamedQuery(name = "Notification.findByPublisherId", query = "SELECT a FROM Notification a WHERE a.publisherId = (?1)"),
-        @NamedQuery(name = "Notification.findByPublisherIdAndDate", query = "SELECT a FROM Notification a WHERE a.publisherId = (?1) and a.startDate <=(?2) and a.endDate >= (?2)"),
+        @NamedQuery(name = "Notification.findByPublisherIdAndDate", query = "SELECT a FROM Notification a WHERE a.publisherId = (?1) and a.startDate <=(?2) and a.endDate >= (?2) or a.endDate = NULL"),
         @NamedQuery(name = "Notification.findByUun", query = "SELECT a FROM Notification a WHERE a.uun = (?1)"),
-        @NamedQuery(name = "Notification.findByUunAndDate", query = "SELECT a FROM Notification a WHERE a.uun = (?1) and a.startDate <=(?2) and a.endDate >= (?2)"),
+        @NamedQuery(name = "Notification.findByUunAndDate", query = "SELECT a FROM Notification a WHERE a.uun = (?1) and a.startDate <=(?2) and a.endDate >= (?2) or a.endDate = NULL"),
         @NamedQuery(name = "Notification.findByUunAndTopic", query = "SELECT a FROM Notification a WHERE a.uun = (?1) and a.topic = (?2)"),
         @NamedQuery(name = "Notification.findByUunTopicAndDate", query = "SELECT a FROM Notification a WHERE a.uun = (?1) and a.topic = (?2) and a.startDate <=(?3) and a.endDate >= (?3) or a.endDate = NULL")
 })
