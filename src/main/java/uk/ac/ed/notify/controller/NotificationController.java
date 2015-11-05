@@ -20,10 +20,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.security.Principal;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Enumeration;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by rgood on 18/09/2015.
@@ -218,6 +215,11 @@ public class NotificationController {
         try {
             List<TopicSubscription> topicSubscriptionList = topicSubscriptionRepository.findBySubscriberId(subscriberId);
 
+            Calendar cal = Calendar.getInstance();
+            Date today = cal.getTime();
+            cal.add(Calendar.YEAR, 1); // to get previous year add -1
+            Date nextYear = cal.getTime();
+
             Date dateNow = new Date();
             List<NotificationCategory> categories = new ArrayList<NotificationCategory>();
             NotificationCategory category;
@@ -233,7 +235,14 @@ public class NotificationController {
                     entry = new NotificationEntry();
                     entry.setBody(notification.getBody());
                     entry.setTitle(notification.getTitle());
-                    entry.setDueDate(notification.getEndDate());
+                    if (notification.getEndDate()==null)
+                    {
+                        entry.setDueDate(nextYear);
+                    }
+                    else
+                    {
+                        entry.setDueDate(notification.getEndDate());
+                    }
                     entry.setUrl(notification.getUrl());
                     entries.add(entry);
                 }
