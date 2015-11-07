@@ -273,7 +273,7 @@ public class NotificationControllerTest {
     @Test
     public void testCreateNotification() throws Exception {
         Notification notification = new Notification();
-        notification.setBody("<p>Test</p>");
+        notification.setBody("<p>Testing?</p><p>&nbsp;</p><ul><li>One&nbsp;</li><li>two&nbsp;</li><li>three</li><li>&nbsp;</li></ul>");
         notification.setTopic("TESTCATEGORY");
         notification.setPublisherId("TESTPUB");
         notification.setPublisherNotificationId("12");
