@@ -196,7 +196,49 @@ public class NotificationRepositoryTest {
     }
 
     @Test
-    public void testGetNotificationByUunAndNullDate()
+    public void testGetNotificationByUunAndNullStartDate()
+    {
+        Notification notification = new Notification();
+        notification.setBody("<p>Test</p>");
+        notification.setTopic("TESTCATEGORY");
+        notification.setPublisherId("TESTPUB");
+        notification.setPublisherNotificationId("12");
+        notification.setTitle("TESTTITLE");
+        notification.setUrl("http://www.google.co.uk");
+        notification.setUun("TESTUUN");
+        notification.setStartDate(date);
+        notification.setEndDate(date);
+        notificationRepository.save(notification);
+        notification = new Notification();
+        notification.setBody("<p>Test Two</p>");
+        notification.setTopic("TESTCATEGORYTWO");
+        notification.setPublisherId("TESTPUB");
+        notification.setPublisherNotificationId("12");
+        notification.setTitle("TESTTITLETWO");
+        notification.setUrl("http://www.google.co.uk");
+        notification.setUun("TESTUUN");
+        notification.setStartDate(null);
+        notification.setEndDate(dateFuture);
+        notificationRepository.save(notification);
+        notification = new Notification();
+        notification.setBody("<p>Test Two</p>");
+        notification.setTopic("TESTCATEGORYTWO");
+        notification.setPublisherId("TESTPUB");
+        notification.setPublisherNotificationId("12");
+        notification.setTitle("TESTTITLETWO");
+        notification.setUrl("http://www.google.co.uk");
+        notification.setUun("TESTUUN2");
+        notification.setStartDate(null);
+        notification.setEndDate(dateFuture);
+        notificationRepository.save(notification);
+        List<Notification> results = notificationRepository.findByUunAndDate("TESTUUN",new Date());
+        assertEquals(1,results.size());
+        assertEquals("TESTTITLETWO",results.get(0).getTitle());
+
+    }
+
+    @Test
+    public void testGetNotificationByUunAndNullEndDate()
     {
         Notification notification = new Notification();
         notification.setBody("<p>Test</p>");
@@ -397,7 +439,7 @@ public class NotificationRepositoryTest {
     }
 
     @Test
-    public void testNotificationByPublisherAndNullDate()
+    public void testNotificationByPublisherAndNullEndDate()
     {
         Notification notification = new Notification();
         notification.setBody("<p>Test</p>");
@@ -429,6 +471,37 @@ public class NotificationRepositoryTest {
     }
 
 
+    @Test
+    public void testNotificationByPublisherAndNullStartDate()
+    {
+        Notification notification = new Notification();
+        notification.setBody("<p>Test</p>");
+        notification.setTopic("TESTCATEGORY");
+        notification.setPublisherId("TESTPUB");
+        notification.setPublisherNotificationId("12");
+        notification.setTitle("TESTTITLE");
+        notification.setUrl("http://www.google.co.uk");
+        notification.setUun("TESTUUN");
+        notification.setStartDate(date);
+        notification.setEndDate(date);
+        notificationRepository.save(notification);
+        notification = new Notification();
+        notification.setBody("<p>Test Two</p>");
+        notification.setTopic("TESTCATEGORYTWO");
+        notification.setPublisherId("TESTPUB");
+        notification.setPublisherNotificationId("12");
+        notification.setTitle("TESTTITLETWO");
+        notification.setUrl("http://www.google.co.uk");
+        notification.setUun("TESTUUN");
+        notification.setStartDate(null);
+        notification.setEndDate(dateFuture);
+        notificationRepository.save(notification);
+
+        List<Notification> results = notificationRepository.findByPublisherIdAndDate("TESTPUB", new Date());
+        assertEquals(1, results.size());
+        assertEquals("TESTTITLETWO",results.get(0).getTitle());
+
+    }
 
 
 }
