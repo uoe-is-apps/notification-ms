@@ -139,6 +139,19 @@ public class NotificationController {
         {
             throw new ServletException("Must set UUN for non broadcast notifications");
         }
+
+        Notification one = notificationRepository.findOne(notificationId);
+
+        if (one==null)
+        {
+            throw new ServletException("Notification not found");
+        }
+
+        if (!one.getPublisherId().equals(notification.getPublisherId()))
+        {
+            throw new ServletException("Cannot change publisher Id once set.");
+        }
+
         try
         {
             notificationRepository.save(notification);

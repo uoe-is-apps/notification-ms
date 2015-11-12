@@ -298,6 +298,57 @@ public class NotificationControllerTest {
     }
 
     @Test(expected = ServletException.class)
+    public void testUpdateNotificationNoNotification() throws Exception
+    {
+        Notification notification = new Notification();
+        notification.setBody("<p>Test</p>");
+        notification.setTopic("TESTCATEGORY");
+        notification.setPublisherId("TESTPUB");
+        notification.setPublisherNotificationId("12");
+        notification.setTitle("TESTTITLE");
+        notification.setUrl("http://www.google.co.uk");
+        notification.setUun("TESTUUN");
+        notification.setStartDate(date);
+        notification.setEndDate(date);
+
+        notificationId = notification.getNotificationId();
+        notification.setTitle("UPDATEDTITLE");
+        ObjectMapper objMapper = new ObjectMapper();
+        String jsonString = objMapper.writeValueAsString(notification);
+        this.mockMvc.perform(put("/notification/"+notificationId)
+                .content(jsonString)
+                .contentType(MediaType.APPLICATION_JSON));
+
+
+    }
+
+    @Test(expected = ServletException.class)
+    public void testUpdateNotificationUpdatePublisher() throws Exception
+    {
+        Notification notification = new Notification();
+        notification.setBody("<p>Test</p>");
+        notification.setTopic("TESTCATEGORY");
+        notification.setPublisherId("TESTPUB");
+        notification.setPublisherNotificationId("12");
+        notification.setTitle("TESTTITLE");
+        notification.setUrl("http://www.google.co.uk");
+        notification.setUun("TESTUUN");
+        notification.setStartDate(date);
+        notification.setEndDate(date);
+        notificationRepository.save(notification);
+
+        notificationId = notification.getNotificationId();
+        notification.setPublisherId("TESTPUB2");
+        ObjectMapper objMapper = new ObjectMapper();
+        String jsonString = objMapper.writeValueAsString(notification);
+        this.mockMvc.perform(put("/notification/"+notificationId)
+                .content(jsonString)
+                .contentType(MediaType.APPLICATION_JSON));
+
+
+    }
+
+    @Test(expected = ServletException.class)
     public void testUpdateNotificationMismatchedNotificationId() throws Exception
     {
         Notification notification = new Notification();
