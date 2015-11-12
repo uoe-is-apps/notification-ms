@@ -98,6 +98,10 @@ public class NotificationController {
     @RequestMapping(value="/notification/", method=RequestMethod.POST)
     public @ResponseBody Notification setNotification(@RequestBody Notification notification) throws ServletException {
 
+        if (!notification.getTopic().equals("Emergency")&&notification.getUun()==null)
+        {
+            throw new ServletException("Must set UUN for non broadcast notifications");
+        }
         try
         {
             notificationRepository.save(notification);
@@ -130,6 +134,10 @@ public class NotificationController {
         if (!notificationId.equals(notification.getNotificationId()))
         {
             throw new ServletException("Notification Id and notification body do not match");
+        }
+        if (!notification.getTopic().equals("Emergency")&&notification.getUun()==null)
+        {
+            throw new ServletException("Must set UUN for non broadcast notifications");
         }
         try
         {

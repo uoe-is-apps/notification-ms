@@ -14,6 +14,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -29,6 +30,7 @@ import uk.ac.ed.notify.entity.*;
 import uk.ac.ed.notify.repository.*;
 
 
+import javax.servlet.ServletException;
 import java.util.Date;
 
 /**
@@ -270,6 +272,55 @@ public class NotificationControllerTest {
 
     }
 
+    @Test(expected = ServletException.class)
+    public void testUpdateNotificationNoUUN() throws Exception
+    {
+        Notification notification = new Notification();
+        notification.setBody("<p>Test</p>");
+        notification.setTopic("TESTCATEGORY");
+        notification.setPublisherId("TESTPUB");
+        notification.setPublisherNotificationId("12");
+        notification.setTitle("TESTTITLE");
+        notification.setUrl("http://www.google.co.uk");
+
+        notification.setStartDate(date);
+        notification.setEndDate(date);
+        notificationRepository.save(notification);
+        notificationId = notification.getNotificationId();
+        notification.setTitle("UPDATEDTITLE");
+        ObjectMapper objMapper = new ObjectMapper();
+        String jsonString = objMapper.writeValueAsString(notification);
+        this.mockMvc.perform(put("/notification/"+notificationId)
+                .content(jsonString)
+                .contentType(MediaType.APPLICATION_JSON));
+
+
+    }
+
+    @Test(expected = ServletException.class)
+    public void testUpdateNotificationMismatchedNotificationId() throws Exception
+    {
+        Notification notification = new Notification();
+        notification.setBody("<p>Test</p>");
+        notification.setTopic("TESTCATEGORY");
+        notification.setPublisherId("TESTPUB");
+        notification.setPublisherNotificationId("12");
+        notification.setTitle("TESTTITLE");
+        notification.setUrl("http://www.google.co.uk");
+        notification.setUun("TESTUUN");
+        notification.setStartDate(date);
+        notification.setEndDate(date);
+        notificationRepository.save(notification);
+        notificationId = notification.getNotificationId();
+        notification.setTitle("UPDATEDTITLE");
+        ObjectMapper objMapper = new ObjectMapper();
+        String jsonString = objMapper.writeValueAsString(notification);
+        this.mockMvc.perform(put("/notification/12")
+                .content(jsonString)
+                .contentType(MediaType.APPLICATION_JSON));
+
+
+    }
     @Test
     public void testCreateNotification() throws Exception {
         Notification notification = new Notification();
@@ -297,6 +348,26 @@ public class NotificationControllerTest {
         assertEquals(AuditActions.CREATE_NOTIFICATION,userNotificationAudits.iterator().next().getAction());
 
     }
+
+    @Test(expected = ServletException.class)
+    public void testCreateNotificationNoUUN() throws Exception {
+        Notification notification = new Notification();
+        notification.setBody("<p>Testing?</p><p>&nbsp;</p><ul><li>One&nbsp;</li><li>two&nbsp;</li><li>three</li><li>&nbsp;</li></ul>");
+        notification.setTopic("TESTCATEGORY");
+        notification.setPublisherId("TESTPUB");
+        notification.setPublisherNotificationId("12");
+        notification.setTitle("TESTTITLE");
+        notification.setUrl("http://www.google.co.uk");
+        notification.setStartDate(date);
+        notification.setEndDate(date);
+
+        ObjectMapper objMapper = new ObjectMapper();
+        String jsonString = objMapper.writeValueAsString(notification);
+        this.mockMvc.perform(post("/notification/")
+                .content(jsonString).contentType(MediaType.APPLICATION_JSON));
+
+    }
+
 
     @Test
     public void testGetEmergencyNotifications() throws Exception {
