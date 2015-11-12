@@ -93,7 +93,7 @@ public class NotificationController {
         }
     }
 
-    @ApiOperation(value="Create a new notification",notes="Requires a valid notification object",
+    @ApiOperation(value="Create a new notification",notes="Requires a valid notification object. For creation DO NOT specify notificationId, one will be automatically generated.",
             authorizations = {@Authorization(value="oauth2",scopes = {@AuthorizationScope(scope="notifications.write",description = "Write access to notification API")})})
     @RequestMapping(value="/notification/", method=RequestMethod.POST)
     public @ResponseBody Notification setNotification(@RequestBody Notification notification) throws ServletException {
