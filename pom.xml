@@ -24,11 +24,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-eureka</artifactId>
-            <version>1.0.4.RELEASE</version>
-        </dependency>
-        <dependency>
             <groupId>org.jasig.portlet.notification</groupId>
             <artifactId>notification-portlet-api</artifactId>
             <version>3.0.0-M3</version>
