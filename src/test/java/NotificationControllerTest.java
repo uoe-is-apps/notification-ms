@@ -1,7 +1,9 @@
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.MockitoAnnotations;
@@ -9,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -26,11 +29,12 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
+
 import uk.ac.ed.notify.entity.*;
 import uk.ac.ed.notify.repository.*;
 
-
 import javax.servlet.ServletException;
+
 import java.util.Date;
 
 /**
@@ -454,6 +458,12 @@ public class NotificationControllerTest {
                 .andExpect(jsonPath("$.categories[0].title", is("Emergency")))
                 .andExpect(jsonPath("$.categories[0].entries[0].title",is("TESTTITLE")))
                 .andExpect(jsonPath("$.categories[0].entries[1].title",is("TESTTITLETWO")));
+    }
+    
+    @Test @Ignore
+    public void testUserNotificationsNoUnn() throws Exception{
+    	
+    	this.mockMvc.perform(get("/notification/user/"));
     }
 
 

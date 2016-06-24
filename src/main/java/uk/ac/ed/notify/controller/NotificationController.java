@@ -70,7 +70,7 @@ public class NotificationController {
         httpServletResponse.setHeader("cache-control", "public, max-age=" + cacheExpiry/1000 + ", cache");
         httpServletResponse.setDateHeader("Expires", expires);
 
-        if (authentication!=null&&authentication.getOAuth2Request().getClientId().equals("notification-api-ui"))
+       if (authentication!=null&&authentication.getOAuth2Request().getClientId().equals("notification-api-ui"))
         {
             Notification notification = new Notification();
             notification.setBody("Test notification");
@@ -424,5 +424,24 @@ public class NotificationController {
 
         return notificationResponse;
     }
+    
+    
+    @ApiOperation(value="Get all notifications for a user",notes="Requires uun to look up",
+    	    authorizations = {@Authorization(value="oauth2",scopes = {@AuthorizationScope(scope="notifications.read",description = "Read access to notification API")})})
+    	    @RequestMapping(value="/notification/user/{uun}", method= RequestMethod.GET)
+    	    public List<Notification> getUserNotifications(@PathVariable("uun") String uun, HttpServletResponse httpServletResponse) throws ServletException {
 
+    	        if (uun.equals(""))
+    	        {
+    	            logger.warn("getUserNotifications called with no uun");
+    	            throw new ServletException("You must provide a uun");
+    	        }
+
+    	        long expires = (new Date()).getTime()+cacheExpiry;
+
+    	        httpServletResponse.setHeader("cache-control", "public, max-age=" + cacheExpiry/1000 + ", cache");
+    	        httpServletResponse.setDateHeader("Expires", expires);
+
+    	        return notificationRepository.findByUun(uun);
+    	    }
 }
