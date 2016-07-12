@@ -460,11 +460,24 @@ public class NotificationControllerTest {
                 .andExpect(jsonPath("$.categories[0].entries[1].title",is("TESTTITLETWO")));
     }
     
-    @Test @Ignore
-    public void testUserNotificationsNoUnn() throws Exception{
+    @Test 
+    public void testUserNotifications() throws Exception{
     	
-    	this.mockMvc.perform(get("/notification/user/"));
+    	Notification notification = new Notification();
+        notification.setBody("<p>User notification test</p>");
+        notification.setTopic("Emergency");
+        notification.setPublisherId("notify-ui");
+        notification.setPublisherNotificationId("12");
+        notification.setTitle("USER NOTIFICATION TEST");
+        notification.setUrl("http://www.google.co.uk");
+        notification.setUun("TESTUUN");
+        notification.setStartDate(date);
+        notification.setEndDate(dateFuture);
+        notificationRepository.save(notification);
+        
+    	this.mockMvc.perform(get("/notification/user/TESTUUN"))
+    	     .andExpect(status().isOk())
+    	     .andExpect(jsonPath("$", hasSize(1)))
+    	     .andExpect(jsonPath("$[0].title", is("USER NOTIFICATION TEST")));
     }
-
-
 }

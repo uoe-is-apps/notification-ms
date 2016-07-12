@@ -1,6 +1,5 @@
 package uk.ac.ed.notify.controller;
 
-import com.mangofactory.swagger.models.dto.OAuth;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.Authorization;
 import com.wordnik.swagger.annotations.AuthorizationScope;
@@ -430,12 +429,6 @@ public class NotificationController {
     	    authorizations = {@Authorization(value="oauth2",scopes = {@AuthorizationScope(scope="notifications.read",description = "Read access to notification API")})})
     	    @RequestMapping(value="/notification/user/{uun}", method= RequestMethod.GET)
     	    public List<Notification> getUserNotifications(@PathVariable("uun") String uun, HttpServletResponse httpServletResponse) throws ServletException {
-
-    	        if (uun.equals(""))
-    	        {
-    	            logger.warn("getUserNotifications called with no uun");
-    	            throw new ServletException("You must provide a uun");
-    	        }
 
     	        long expires = (new Date()).getTime()+cacheExpiry;
 
