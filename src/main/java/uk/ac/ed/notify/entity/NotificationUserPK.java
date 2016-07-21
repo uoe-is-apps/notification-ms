@@ -2,11 +2,18 @@ package uk.ac.ed.notify.entity;
 
 import java.io.Serializable;
 
+import javax.persistence.Column;
+import javax.persistence.Embeddable;
+
+@Embeddable
 public class NotificationUserPK implements Serializable {
 	
 	private static final long serialVersionUID = 1L;
 	
-	private String notificationId;
+	@Column(name="notification_id")
+	private String notificationId; //need to hide it when displaying as part of Notification
+	
+	@Column(name = "uun")
 	private String uun;
 	
 	public NotificationUserPK() {}
@@ -31,6 +38,4 @@ public class NotificationUserPK implements Serializable {
 	public void setUun(String uun) {
 		this.uun = uun;
 	}
-	
-//implement hashcode and equals if using Sets
 }

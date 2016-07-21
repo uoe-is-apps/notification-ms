@@ -15,6 +15,7 @@ import uk.ac.ed.notify.NotificationCategory;
 import uk.ac.ed.notify.NotificationEntry;
 import uk.ac.ed.notify.NotificationError;
 import uk.ac.ed.notify.NotificationResponse;
+import uk.ac.ed.notify.NotificationUserList;
 import uk.ac.ed.notify.entity.*;
 import uk.ac.ed.notify.repository.*;
 
@@ -38,6 +39,9 @@ public class NotificationController {
 
     @Autowired
     NotificationRepository notificationRepository;
+    
+    @Autowired
+    NotificationUserRepository notificationUserReporitory;
 
     @Autowired
     PublisherDetailsRepository publisherDetailsRepository;
@@ -119,17 +123,17 @@ public class NotificationController {
     @ApiOperation(value="Create a new notification",notes="Requires a valid notification object. For creation DO NOT specify notificationId, one will be automatically generated.",
             authorizations = {@Authorization(value="oauth2",scopes = {@AuthorizationScope(scope="notifications.write",description = "Write access to notification API")})})
     @RequestMapping(value="/notification/", method=RequestMethod.POST)
-    public @ResponseBody Notification setNotification(@RequestBody Notification notification, OAuth2Authentication authentication) throws ServletException {
+    public Notification setNotification(@RequestBody Notification notification, OAuth2Authentication authentication) throws ServletException {
 
-        try
-        {
-            notificationRepository.save(notification);
+        try {
+        	notificationRepository.save(notification);
            /* UserNotificationAudit userNotificationAudit = new UserNotificationAudit();
             userNotificationAudit.setAction(AuditActions.CREATE_NOTIFICATION);
             userNotificationAudit.setAuditDate(new Date());
             userNotificationAudit.setPublisherId(notification.getPublisherId());
             userNotificationAudit.setUun(notification.getUun());
             userNotificationAuditRepository.save(userNotificationAudit);*/
+        	notification.setNotificationId("bumbum");
             return notification;
         }
         catch (Exception e)
@@ -143,6 +147,40 @@ public class NotificationController {
             throw new ServletException("Error saving notification");
         }
     }
+    
+    @ApiOperation(value="Add notification users",notes="Requires a valid notification id and uun.",
+            authorizations = {@Authorization(value="oauth2",scopes = {@AuthorizationScope(scope="notifications.write",description = "Write access to notification API")})})
+    @RequestMapping(value="/notification/{notification-id}/users/", method=RequestMethod.POST)
+    public Notification setNotificationUser(@PathVariable("notification-id") String notificationId, @RequestBody NotificationUserList users) throws ServletException {
+        
+    	Notification notification = notificationRepository.findOne(notificationId);
+    	if (notification == null) {
+    		throw new ServletException("Notification with id @ does not exist".replace("@", notificationId));
+    	}
+    	
+        try {
+        	
+        	for (int i = 0; i < users.getUsers().size(); i++){
+        		users.getUsers().get(i).getUser().setNotificationId(notificationId);
+        	}
+        	notificationUserReporitory.save(users.getUsers()); // how do you flush to display the new users?
+        	
+        	return notificationRepository.findOne(notificationId);
+        }
+        catch (Exception e)
+        {
+            logger.error("Error saving notification users",e);
+            uk.ac.ed.notify.entity.NotificationError notificationError = new uk.ac.ed.notify.entity.NotificationError();
+            notificationError.setErrorCode(ErrorCodes.SAVE_ERROR);
+            notificationError.setErrorDescription(e.getMessage());
+            notificationError.setErrorDate(new Date());
+            notificationErrorRepository.save(notificationError);
+            throw new ServletException("Error saving notification users");
+        }
+    }
+    
+    
+    
 
     @ApiOperation(value="Update notification",notes="Requires a valid notification object",
             authorizations = {@Authorization(value="oauth2",scopes = {@AuthorizationScope(scope="notifications.write",description = "Write access to notification API")})})
