@@ -1,20 +1,17 @@
 package uk.ac.ed.notify.entity;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
 import org.hibernate.annotations.GenericGenerator;
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Whitelist;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowire;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Configurable;
-import uk.ac.ed.notify.repository.UserNotificationAuditRepository;
 
-import javax.annotation.PostConstruct;
 import javax.persistence.*;
-import javax.validation.constraints.NotNull;
+
 import java.util.Date;
+import java.util.List;
 
 /**
  * Created by rgood on 18/09/2015.
@@ -22,12 +19,12 @@ import java.util.Date;
 @Entity
 @Table(name="NOTIFICATIONS", schema = "NOTIFY")
 @NamedQueries({
-        @NamedQuery(name = "Notification.findByPublisherId", query = "SELECT a FROM Notification a WHERE a.publisherId = (?1)"),
-        @NamedQuery(name = "Notification.findByPublisherIdAndDate", query = "SELECT a FROM Notification a WHERE a.publisherId = (?1) and (a.startDate <=(?2) or a.startDate = NULL) and (a.endDate >= (?2) or a.endDate = NULL)"),
-        @NamedQuery(name = "Notification.findByUun", query = "SELECT a FROM Notification a WHERE a.uun = (?1)"),
-        @NamedQuery(name = "Notification.findByUunAndDate", query = "SELECT a FROM Notification a WHERE a.uun = (?1) and (a.startDate <=(?2) or a.startDate = NULL) and (a.endDate >= (?2) or a.endDate = NULL)"),
-        @NamedQuery(name = "Notification.findByUunAndTopic", query = "SELECT a FROM Notification a WHERE a.uun = (?1) and a.topic = (?2)"),
-        @NamedQuery(name = "Notification.findByUunTopicAndDate", query = "SELECT a FROM Notification a WHERE a.uun = (?1) and a.topic = (?2) and (a.startDate <=(?3) or a.startDate = NULL) and (a.endDate >= (?3) or a.endDate = NULL)")
+        @NamedQuery(name = "Notification.findByPublisherId", query = "SELECT n FROM Notification n WHERE n.publisherId = (?1)"),
+        @NamedQuery(name = "Notification.findByPublisherIdAndDate", query = "SELECT n FROM Notification n WHERE n.publisherId = (?1) and (n.startDate <=(?2) or n.startDate = NULL) and (n.endDate >= (?2) or n.endDate = NULL)"),
+        @NamedQuery(name = "Notification.findByUun", query = "SELECT n FROM Notification n JOIN n.notificationUsers b WHERE b.uun = (?1)"),
+        @NamedQuery(name = "Notification.findByUunAndDate", query = "SELECT n FROM Notification n JOIN n.notificationUsers b WHERE b.uun = (?1) and (n.startDate <=(?2) or n.startDate = NULL) and (n.endDate >= (?2) or n.endDate = NULL)"),
+        @NamedQuery(name = "Notification.findByUunAndTopic", query = "SELECT n FROM Notification n JOIN n.notificationUsers b WHERE b.uun = (?1) and n.topic = (?2)"),
+        @NamedQuery(name = "Notification.findByUunTopicAndDate", query = "SELECT n FROM Notification n JOIN n.notificationUsers b WHERE b.uun = (?1) and n.topic = (?2) and (n.startDate <=(?3) or n.startDate = NULL) and (n.endDate >= (?3) or n.endDate = NULL)")
 })
 public class Notification {
 
@@ -69,14 +66,14 @@ public class Notification {
         @Temporal(TemporalType.TIMESTAMP)
         private Date endDate;
 
-        @Column(name="uun")
-        private String uun;
-
         @JsonSerialize(using=DatePartSerializer.class)
         @Column(name="LAST_UPDATED")
         @Temporal(TemporalType.TIMESTAMP)
         private Date lastUpdated;
 
+        @OneToMany(fetch = FetchType.EAGER, mappedBy = "notification", cascade = CascadeType.ALL, orphanRemoval = true)
+        private List<NotificationUser> notificationUsers;
+        
         public String getNotificationId() {
                 return notificationId;
         }
@@ -166,14 +163,6 @@ public class Notification {
                 this.endDate = endDate;
         }
 
-        public String getUun() {
-                return uun;
-        }
-
-        public void setUun(String uun) {
-                this.uun = uun;
-        }
-
         public Date getLastUpdated() {
                 return lastUpdated;
         }
@@ -181,4 +170,12 @@ public class Notification {
         public void setLastUpdated(Date lastUpdated) {
                 this.lastUpdated = lastUpdated;
         }
+
+		public List<NotificationUser> getNotificationUsers() {
+			return notificationUsers;
+		}
+
+		public void setNotificationUsers(List<NotificationUser> notificationUsers) {
+			this.notificationUsers = notificationUsers;
+		}
 }

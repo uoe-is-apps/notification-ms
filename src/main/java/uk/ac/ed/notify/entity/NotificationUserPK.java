@@ -23,5 +23,14 @@ public class NotificationUserPK implements Serializable {
 	public String getUun() {
 		return uun;
 	}
-// not using Sets so not implementing hashcode and equals just yet
+
+	public void setNotificationId(String notificationId) {
+		this.notificationId = notificationId;
+	}
+
+	public void setUun(String uun) {
+		this.uun = uun;
+	}
+	
+//implement hashcode and equals if using Sets
 }

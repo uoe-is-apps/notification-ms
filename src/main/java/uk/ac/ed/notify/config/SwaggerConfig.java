@@ -51,7 +51,7 @@ public class SwaggerConfig {
                         //Here we disable auto generating of responses for REST-endpoints
                 .useDefaultResponseMessages(false)
                         //Here we specify URI patterns which will be included in Swagger docs. Use regex for this purpose.
-                .includePatterns("/usernotifications/*","/notification/.*","/emergencynotifications")
+                .includePatterns("/emergencynotifications", "/usernotifications/.*", "/notification/.*", "/notifications/.*")
                 .authorizationTypes(getAuthorizationTypes())
                 .ignoredParameterTypes(OAuth2Authentication.class, Principal.class);
 
