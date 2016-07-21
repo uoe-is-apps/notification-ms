@@ -5,7 +5,7 @@ import java.util.List;
 
 import uk.ac.ed.notify.entity.NotificationUser;
 /*
- * wrapper for List, temporary solution, ideally configure @JsonCreator
+ * wrapper for List, can be scrapped when error below resolved
  * error: com.fasterxml.jackson.databind.JsonMappingException: Can not instantiate value of type [simple type, class ...] from String value; no single-String constructor/factory method
  */
 public class NotificationUserList implements Serializable {
@@ -21,6 +21,4 @@ public class NotificationUserList implements Serializable {
 	public void setUsers(List<NotificationUser> users) {
 		this.users = users;
 	}
-	
-	
 }

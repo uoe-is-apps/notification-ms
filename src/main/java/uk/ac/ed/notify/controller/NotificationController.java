@@ -41,7 +41,7 @@ public class NotificationController {
     NotificationRepository notificationRepository;
     
     @Autowired
-    NotificationUserRepository notificationUserReporitory;
+    NotificationUserRepository notificationUserRepository;
 
     @Autowired
     PublisherDetailsRepository publisherDetailsRepository;
@@ -133,7 +133,6 @@ public class NotificationController {
             userNotificationAudit.setPublisherId(notification.getPublisherId());
             userNotificationAudit.setUun(notification.getUun());
             userNotificationAuditRepository.save(userNotificationAudit);*/
-        	notification.setNotificationId("bumbum");
             return notification;
         }
         catch (Exception e)
@@ -148,23 +147,24 @@ public class NotificationController {
         }
     }
     
-    @ApiOperation(value="Add notification users",notes="Requires a valid notification id and uun.",
+    @ApiOperation(value="Add users to notification.",notes="Requires a valid notification id and a list of user uuns to add.",
             authorizations = {@Authorization(value="oauth2",scopes = {@AuthorizationScope(scope="notifications.write",description = "Write access to notification API")})})
-    @RequestMapping(value="/notification/{notification-id}/users/", method=RequestMethod.POST)
-    public Notification setNotificationUser(@PathVariable("notification-id") String notificationId, @RequestBody NotificationUserList users) throws ServletException {
+    @RequestMapping(value="/notification/{notification-id}/addusers/", method=RequestMethod.POST)
+    public Notification setNotificationUser(@PathVariable("notification-id") String notificationId, @RequestBody NotificationUserList userList) throws ServletException {
         
-    	Notification notification = notificationRepository.findOne(notificationId);
-    	if (notification == null) {
+    	boolean exists = notificationRepository.exists(notificationId);
+    	if (!exists) {
     		throw new ServletException("Notification with id @ does not exist".replace("@", notificationId));
-    	}
-    	
+    	}	
         try {
-        	
-        	for (int i = 0; i < users.getUsers().size(); i++){
-        		users.getUsers().get(i).getUser().setNotificationId(notificationId);
+        	if(userList != null && userList.getUsers().size() > 0){
+        		List<NotificationUser> users = userList.getUsers();
+        		for (int i = 0; i < users.size(); i++){
+        			users.get(i).getId().setNotificationId(notificationId);
+        		}
+        		notificationUserRepository.save(users);
+            	notificationUserRepository.flush();
         	}
-        	notificationUserReporitory.save(users.getUsers()); // how do you flush to display the new users?
-        	
         	return notificationRepository.findOne(notificationId);
         }
         catch (Exception e)
@@ -179,8 +179,37 @@ public class NotificationController {
         }
     }
     
-    
-    
+    @ApiOperation(value="Delete all users of a notification.", notes="Requires a valid notification-id.",
+            authorizations = {@Authorization(value="oauth2",scopes = {@AuthorizationScope(scope="notifications.write",description = "Write access to notification API")})})
+    @RequestMapping(value="/notification/{notification-id}/deleteusers/", method=RequestMethod.DELETE)
+    public Notification deleteNotificationUsers(@PathVariable("notification-id") String notificationId) throws ServletException {
+        
+    	Notification notification = notificationRepository.findOne(notificationId);
+    	if (notification == null) {
+    		throw new ServletException("Notification with id @ does not exist".replace("@", notificationId));
+    	}	
+       
+    	try{
+    	    List<NotificationUser> users = notification.getNotificationUsers();
+    		if(users != null && users.size() > 0){
+    			notificationUserRepository.deleteInBatch(users);
+    			notificationUserRepository.flush();	
+    			notification.setNotificationUsers(null);
+    		}
+    		
+    		return notification;
+    	}
+        catch (Exception e)
+        {
+            logger.error("Error saving notification users",e);
+            uk.ac.ed.notify.entity.NotificationError notificationError = new uk.ac.ed.notify.entity.NotificationError();
+            notificationError.setErrorCode(ErrorCodes.SAVE_ERROR);
+            notificationError.setErrorDescription(e.getMessage());
+            notificationError.setErrorDate(new Date());
+            notificationErrorRepository.save(notificationError);
+            throw new ServletException("Error saving notification users");
+        }
+    }
 
     @ApiOperation(value="Update notification",notes="Requires a valid notification object",
             authorizations = {@Authorization(value="oauth2",scopes = {@AuthorizationScope(scope="notifications.write",description = "Write access to notification API")})})
@@ -225,15 +254,9 @@ public class NotificationController {
             throw new ServletException("Error saving notification");
         }
 
-    }
-    
-    
-    
-    
-    
-    
+    }   
 
-    @ApiOperation(value="Delete a notification",notes="Requires a valid notification-id.",
+    @ApiOperation(value="Delete a notification. Also deletes all users of this notification.",notes="Requires a valid notification-id.",
             authorizations = {@Authorization(value="oauth2",scopes = {@AuthorizationScope(scope="notifications.write",description = "Write access to notification API")})})
     @RequestMapping(value="/notification/{notification-id}",method=RequestMethod.DELETE)
     public void deleteNotification(@PathVariable("notification-id") String notificationId,Principal principal,OAuth2Authentication authentication) throws ServletException {
@@ -348,7 +371,7 @@ public class NotificationController {
         return notificationResponse;
     }
 
-    @ApiOperation(value="Get all emergency notifications",notes="Independant of users",
+    @ApiOperation(value="Get all emergency notifications",notes="Independent of users",
             authorizations = {@Authorization(value="oauth2",scopes = {@AuthorizationScope(scope="notifications.read",description = "Read access to notification API")})})
     @RequestMapping(value="/emergencynotifications",method= RequestMethod.GET)
     public NotificationResponse getEmergencyNotifications(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse,Principal principal,HttpServletRequest request,OAuth2Authentication authentication) {

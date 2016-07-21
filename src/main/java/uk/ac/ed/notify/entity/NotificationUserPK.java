@@ -5,13 +5,17 @@ import java.io.Serializable;
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 @Embeddable
 public class NotificationUserPK implements Serializable {
 	
 	private static final long serialVersionUID = 1L;
 	
 	@Column(name="notification_id")
-	private String notificationId; //need to hide it when displaying as part of Notification
+	@JsonIgnore
+	private String notificationId;
 	
 	@Column(name = "uun")
 	private String uun;
@@ -22,7 +26,7 @@ public class NotificationUserPK implements Serializable {
 		this.notificationId = notificationId;
 		this.uun = uun;
 	}
-
+    @JsonIgnore
 	public String getNotificationId() {
 		return notificationId;
 	}
@@ -30,7 +34,7 @@ public class NotificationUserPK implements Serializable {
 	public String getUun() {
 		return uun;
 	}
-
+    @JsonProperty
 	public void setNotificationId(String notificationId) {
 		this.notificationId = notificationId;
 	}

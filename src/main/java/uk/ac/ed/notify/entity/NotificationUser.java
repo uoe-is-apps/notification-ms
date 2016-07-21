@@ -7,25 +7,27 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Entity
 @Table(name="notification_users")
 public class NotificationUser {
 
 	@EmbeddedId
-	private NotificationUserPK user;
+	@JsonProperty("user")
+	private NotificationUserPK id;
 	
 	@ManyToOne
 	@JoinColumn(name = "notification_id", nullable = false, insertable=false, updatable = false)
 	@JsonIgnore
 	private Notification notification;
 
-	public NotificationUserPK getUser() {
-		return user;
+	public NotificationUserPK getId() {
+		return id;
 	}
 
-	public void setUser(NotificationUserPK user) {
-		this.user = user;
+	public void setId(NotificationUserPK id) {
+		this.id = id;
 	}
 
 	public Notification getNotification() {

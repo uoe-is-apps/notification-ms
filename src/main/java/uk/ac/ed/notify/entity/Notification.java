@@ -21,10 +21,10 @@ import java.util.List;
 @NamedQueries({
         @NamedQuery(name = "Notification.findByPublisherId", query = "SELECT n FROM Notification n WHERE n.publisherId = (?1)"),
         @NamedQuery(name = "Notification.findByPublisherIdAndDate", query = "SELECT n FROM Notification n WHERE n.publisherId = (?1) and (n.startDate <=(?2) or n.startDate = NULL) and (n.endDate >= (?2) or n.endDate = NULL)"),
-        @NamedQuery(name = "Notification.findByUun", query = "SELECT n FROM Notification n JOIN n.notificationUsers b WHERE b.user.uun = (?1)"),
-        @NamedQuery(name = "Notification.findByUunAndDate", query = "SELECT n FROM Notification n JOIN n.notificationUsers b WHERE b.user.uun = (?1) and (n.startDate <=(?2) or n.startDate = NULL) and (n.endDate >= (?2) or n.endDate = NULL)"),
-        @NamedQuery(name = "Notification.findByUunAndTopic", query = "SELECT n FROM Notification n JOIN n.notificationUsers b WHERE b.user.uun = (?1) and n.topic = (?2)"),
-        @NamedQuery(name = "Notification.findByUunTopicAndDate", query = "SELECT n FROM Notification n JOIN n.notificationUsers b WHERE b.user.uun = (?1) and n.topic = (?2) and (n.startDate <=(?3) or n.startDate = NULL) and (n.endDate >= (?3) or n.endDate = NULL)")
+        @NamedQuery(name = "Notification.findByUun", query = "SELECT n FROM Notification n JOIN n.notificationUsers b WHERE b.id.uun = (?1)"),
+        @NamedQuery(name = "Notification.findByUunAndDate", query = "SELECT n FROM Notification n JOIN n.notificationUsers b WHERE b.id.uun = (?1) and (n.startDate <=(?2) or n.startDate = NULL) and (n.endDate >= (?2) or n.endDate = NULL)"),
+        @NamedQuery(name = "Notification.findByUunAndTopic", query = "SELECT n FROM Notification n JOIN n.notificationUsers b WHERE b.id.uun = (?1) and n.topic = (?2)"),
+        @NamedQuery(name = "Notification.findByUunTopicAndDate", query = "SELECT n FROM Notification n JOIN n.notificationUsers b WHERE b.id.uun = (?1) and n.topic = (?2) and (n.startDate <=(?3) or n.startDate = NULL) and (n.endDate >= (?3) or n.endDate = NULL)")
 })
 public class Notification {
 
