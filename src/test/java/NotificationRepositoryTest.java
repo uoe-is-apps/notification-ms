@@ -180,7 +180,7 @@ public class NotificationRepositoryTest {
     }
     
     @Test
-    public void deleteRegularNotification() {
+    public void testDeleteRegularNotification() {
     	
     	Notification notification = new Notification();
         notification.setBody("<p>Regular Notification</p>");
@@ -216,7 +216,7 @@ public class NotificationRepositoryTest {
     }
     
     @Test
-    public void getNotificationByPublisher() {
+    public void testGetNotificationByPublisher() {
     	
     	Notification notification = new Notification();
         notification.setBody("<p>Emergency Notification by yes-publisher</p>");
@@ -247,7 +247,99 @@ public class NotificationRepositoryTest {
     }
     
     @Test
-    public void getNotificationByUun() {
+    public void testUpdateRegularNotificationAddUser() {
+    	
+    	Notification notification = new Notification();
+        notification.setBody("<p>Regular Notification</p>");
+        notification.setTopic("Notification");
+        notification.setPublisherId("notify-ui");
+        notification.setPublisherNotificationId("13");
+        notification.setTitle("Notify Announcement");
+        notification.setUrl("http://www.google.co.uk");
+        notification.setStartDate(date);
+        notification.setEndDate(date);
+        
+        List<NotificationUser> users = new ArrayList<NotificationUser>();
+        NotificationUser user = new NotificationUser();
+        user.setNotification(notification);
+        user.setId(new NotificationUserPK(null,"bolek"));
+        users.add(user);
+        
+        notification.setNotificationUsers(users);
+        notificationRepository.save(notification);
+        
+        String notificationId = notification.getNotificationId();
+        
+        user = new NotificationUser();
+        user.setNotification(notification);
+        user.setId(new NotificationUserPK(null,"antek"));
+        users.add(user);
+        
+        notification.setNotificationUsers(users);
+        notificationRepository.save(notification);
+        
+        assertThat(notificationId, is(notification.getNotificationId()));
+        
+        users = notificationUserRepository.findByIdNotificationId(notificationId);
+        assertThat(users, hasSize(2));
+        assertThat(users.get(0).getId().getUun(), isOneOf("bolek","antek"));
+        assertThat(users.get(1).getId().getUun(), isOneOf("bolek","antek"));
+    }
+    
+    @Test
+    public void testUpdateRegularNotificationDeleteUser() {
+    	
+    	Notification notification = new Notification();
+        notification.setBody("<p>Regular Notification</p>");
+        notification.setTopic("Notification");
+        notification.setPublisherId("notify-ui");
+        notification.setPublisherNotificationId("13");
+        notification.setTitle("Notify Announcement");
+        notification.setUrl("http://www.google.co.uk");
+        notification.setStartDate(date);
+        notification.setEndDate(date);
+        
+        List<NotificationUser> users = new ArrayList<NotificationUser>();
+        
+        NotificationUser user = new NotificationUser();
+        user.setNotification(notification);
+        user.setId(new NotificationUserPK(null,"bolek"));
+        users.add(user);
+        
+        user = new NotificationUser();
+        user.setNotification(notification);
+        user.setId(new NotificationUserPK(null,"thumper"));
+        users.add(user);
+        
+        user = new NotificationUser();
+        user.setNotification(notification);
+        user.setId(new NotificationUserPK(null,"donald"));
+        users.add(user);
+        
+        notification.setNotificationUsers(users);
+        notificationRepository.save(notification);
+        
+        String notificationId = notification.getNotificationId();
+        
+        for(int i = 0; i < users.size(); i++){
+        	if(users.get(i).getId().getUun().equals("bolek")){
+        		users.remove(i);
+        	}
+        }
+        
+        notification.setNotificationUsers(users);
+        notificationRepository.save(notification);
+        
+        assertThat(notificationId, is(notification.getNotificationId()));
+        
+        users = notificationUserRepository.findByIdNotificationId(notificationId);
+        assertThat(users, hasSize(2));
+        assertThat(users.get(0).getId().getUun(), is(not("bolek")));
+        assertThat(users.get(1).getId().getUun(), is(not("bolek")));
+    }
+    
+    @Test
+    public void testGetNotificationByUun() {
     	
     	Notification notification = new Notification();
         notification.setBody("<p>Regular Notification</p>");
@@ -269,6 +361,7 @@ public class NotificationRepositoryTest {
         notificationRepository.save(notification);
         
         String yesNotificationId = notification.getNotificationId();
+        assertThat(yesNotificationId, is(notNullValue()));
         
         notification = new Notification();
         notification.setBody("<p>Regular Notification 2</p>");
@@ -296,4 +389,159 @@ public class NotificationRepositoryTest {
         assertThat(notificationList.get(0).getNotificationUsers(), hasSize(1));
         assertThat(notificationList.get(0).getNotificationUsers().get(0).getId().getUun(), is("yes-user"));
     }  
+    
+    @Test
+    public void testGetNotificationByUunAndDate() {
+    	
+    	Notification notification = new Notification();
+        notification.setBody("<p>Regular Notification</p>");
+        notification.setTopic("Notification");
+        notification.setPublisherId("notify-ui");
+        notification.setPublisherNotificationId("13");
+        notification.setTitle("Notify Announcement");
+        notification.setUrl("http://www.google.co.uk");
+        notification.setStartDate(date);
+        notification.setEndDate(date);
+        
+        List<NotificationUser> users = new ArrayList<NotificationUser>();
+        NotificationUser user = new NotificationUser();
+        user.setNotification(notification);
+        user.setId(new NotificationUserPK(null,"donald"));
+        users.add(user);
+        
+        notification.setNotificationUsers(users);
+        notificationRepository.save(notification);
+        
+        notification = new Notification();
+        notification.setBody("<p>Regular Notification 2</p>");
+        notification.setTopic("Notification");
+        notification.setPublisherId("notify-ui");
+        notification.setPublisherNotificationId("14");
+        notification.setTitle("Notify Announcement Future");
+        notification.setUrl("http://www.google.co.uk");
+        notification.setStartDate(date);
+        notification.setEndDate(dateFuture);
+        
+        users = new ArrayList<NotificationUser>();
+        user = new NotificationUser();
+        user.setNotification(notification);
+        user.setId(new NotificationUserPK(null,"donald"));
+        users.add(user);
+        
+        notification.setNotificationUsers(users);
+        notificationRepository.save(notification);
+        
+        String notificationId = notification.getNotificationId();
+        assertThat(notificationId, is(notNullValue()));
+        
+        List<Notification> notificationList = notificationRepository.findByUunAndDate("donald", new Date());
+        assertThat(notificationList, hasSize(1));
+        assertThat(notificationList.get(0).getNotificationId(), is(notificationId));
+        assertThat(notificationList.get(0).getTitle(), is("Notify Announcement Future"));
+    }
+    
+    @Test
+    public void testGetNotificationByUunAndTopic() {
+    	
+    	Notification notification = new Notification();
+        notification.setBody("<p>Regular Notification 1</p>");
+        notification.setTopic("YES TOPIC");
+        notification.setPublisherId("notify-ui");
+        notification.setPublisherNotificationId("13");
+        notification.setTitle("Notify Announcement YES");
+        notification.setUrl("http://www.google.co.uk");
+        notification.setStartDate(date);
+        notification.setEndDate(date);
+        
+        List<NotificationUser> users = new ArrayList<NotificationUser>();
+        NotificationUser user = new NotificationUser();
+        user.setNotification(notification);
+        user.setId(new NotificationUserPK(null,"donald"));
+        users.add(user);
+        
+        notification.setNotificationUsers(users);
+        notificationRepository.save(notification);
+        
+        String notificationId = notification.getNotificationId();
+        assertThat(notificationId, is(notNullValue()));
+        
+        notification = new Notification();
+        notification.setBody("<p>Regular Notification 2</p>");
+        notification.setTopic("YES TOPIC");
+        notification.setPublisherId("notify-ui");
+        notification.setPublisherNotificationId("14");
+        notification.setTitle("Notify Announcement Future");
+        notification.setUrl("http://www.google.co.uk");
+        notification.setStartDate(date);
+        notification.setEndDate(dateFuture);
+        
+        users = new ArrayList<NotificationUser>();
+        user = new NotificationUser();
+        user.setNotification(notification);
+        user.setId(new NotificationUserPK(null,"hilarry"));
+        users.add(user);
+        
+        notification.setNotificationUsers(users);
+        notificationRepository.save(notification);
+        
+        notification = new Notification();
+        notification.setBody("<p>Regular Notification 3</p>");
+        notification.setTopic("NO TOPIC");
+        notification.setPublisherId("notify-ui");
+        notification.setPublisherNotificationId("14");
+        notification.setTitle("Notify Announcement Future");
+        notification.setUrl("http://www.google.co.uk");
+        notification.setStartDate(date);
+        notification.setEndDate(dateFuture);
+        
+        users = new ArrayList<NotificationUser>();
+        user = new NotificationUser();
+        user.setNotification(notification);
+        user.setId(new NotificationUserPK(null,"donald"));
+        users.add(user);
+        
+        notification.setNotificationUsers(users);
+        notificationRepository.save(notification);
+        
+        List<Notification> notificationList = notificationRepository.findByUunAndTopic("donald", "YES TOPIC");
+        assertThat(notificationList, hasSize(1));
+        assertThat(notificationList.get(0).getNotificationId(), is(notificationId));
+        assertThat(notificationList.get(0).getTitle(), is("Notify Announcement YES"));
+    }
+    
+    @Test
+    public void testGetNotificationByPublisherAndDate() {
+    	
+    	Notification notification = new Notification();
+        notification.setBody("<p>Regular Notification</p>");
+        notification.setTopic("Notification");
+        notification.setPublisherId("yes-publisher");
+        notification.setPublisherNotificationId("13");
+        notification.setTitle("Notify Announcement Future OK");
+        notification.setUrl("http://www.google.co.uk");
+        notification.setStartDate(date);
+        notification.setEndDate(dateFuture);
+        
+        notificationRepository.save(notification);
+        
+        String notificationId = notification.getNotificationId();
+        assertThat(notificationId, is(notNullValue()));
+        
+        notification = new Notification();
+        notification.setBody("<p>Regular Notification 2</p>");
+        notification.setTopic("Notification");
+        notification.setPublisherId("yes-publisher");
+        notification.setPublisherNotificationId("14");
+        notification.setTitle("Notify Announcement Past NOT OK");
+        notification.setUrl("http://www.google.co.uk");
+        notification.setStartDate(date);
+        notification.setEndDate(date);
+        
+        notificationRepository.save(notification);
+        
+        List<Notification> notificationList = notificationRepository.findByPublisherIdAndDate("yes-publisher", new Date());
+        assertThat(notificationList, hasSize(1));
+        assertThat(notificationList.get(0).getNotificationId(), is(notificationId));
+        assertThat(notificationList.get(0).getTitle(), is("Notify Announcement Future OK"));
+    }
 }
