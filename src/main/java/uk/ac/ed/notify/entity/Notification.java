@@ -30,7 +30,6 @@ public class Notification {
 
         private static final Logger logger = LoggerFactory.getLogger(Notification.class);
 
-        //TODO Add status value validation
         @Id
         @GeneratedValue(generator="system-uuid")
         @GenericGenerator(name="system-uuid",
@@ -71,7 +70,7 @@ public class Notification {
         @Temporal(TemporalType.TIMESTAMP)
         private Date lastUpdated;
 
-        @OneToMany(fetch = FetchType.EAGER, mappedBy = "notification", cascade = CascadeType.REMOVE, orphanRemoval = true)
+        @OneToMany(fetch = FetchType.EAGER, mappedBy = "notification", cascade = CascadeType.ALL, orphanRemoval = true)
         private List<NotificationUser> notificationUsers;
         
         public String getNotificationId() {

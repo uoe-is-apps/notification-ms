@@ -42,4 +42,28 @@ public class NotificationUserPK implements Serializable {
 	public void setUun(String uun) {
 		this.uun = uun;
 	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		
+		if (this == obj) {
+			return true;
+		}
+		if (!(obj instanceof NotificationUserPK)) {
+			return false;
+		}
+		final NotificationUserPK pk = (NotificationUserPK) obj;
+		if (!pk.getUun().equals(this.getUun())) {
+			return false;
+		}
+		return false;
+	}
+	
+	@Override
+	public int hashCode() {
+		int result;
+		result = getUun().hashCode();
+		result += getNotificationId().hashCode();
+		return result;
+	}
 }
