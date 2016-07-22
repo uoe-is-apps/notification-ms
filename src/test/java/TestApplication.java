@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
  */
 @EnableAutoConfiguration
 @EntityScan("uk.ac.ed.notify.entity")
-@EnableJpaRepositories("uk.ac.ed.notify.repository")
+@EnableJpaRepositories(basePackages = {"uk.ac.ed.notify.repository", "uk.ac.ed.notify.repository.test"})
 @ComponentScan("uk.ac.ed.notify.controller")
 public class TestApplication {
 
