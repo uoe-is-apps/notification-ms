@@ -126,10 +126,12 @@ public class NotificationController {
         		notification.setNotificationId(null);
         		
         		List<NotificationUser> users = notification.getNotificationUsers();
-        		for (int i = 0; i < users.size(); i++) {
-        			users.get(i).setNotification(notification);
+        		if (users != null) {
+        			for (int i = 0; i < users.size(); i++) {
+            			users.get(i).setNotification(notification);
+            		}
+        			notification.setNotificationUsers(users);
         		}
-        		notification.setNotificationUsers(users);
         		
         		notificationRepository.save(notification);
         	}
@@ -152,7 +154,7 @@ public class NotificationController {
             throw new ServletException("Error saving notification");
         }
     }
-
+    
     @ApiOperation(value="Update notification",notes="Requires a valid notification object",
             authorizations = {@Authorization(value="oauth2",scopes = {@AuthorizationScope(scope="notifications.write",description = "Write access to notification API")})})
     @RequestMapping(value="/notification/{notification-id}",method=RequestMethod.PUT)

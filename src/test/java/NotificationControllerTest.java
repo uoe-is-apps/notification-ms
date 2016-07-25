@@ -3,6 +3,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.MockitoAnnotations;
@@ -111,7 +112,7 @@ public class NotificationControllerTest {
 
 
     @Test
-    public void testGetNotification() throws Exception {
+    public void testGetRegularNotification() throws Exception {
 
     	Notification notification = new Notification();
         notification.setBody("<p>Regular Notification</p>");
@@ -144,7 +145,7 @@ public class NotificationControllerTest {
     }
     
     @Test
-    public void testGetPublisherNotifications() throws Exception {
+    public void testGetRegularNotificationsByPublisher() throws Exception {
     	
     	PublisherDetails publisherDetails = new PublisherDetails();
         publisherDetails.setPublisherId("TESTPUB");
@@ -183,5 +184,121 @@ public class NotificationControllerTest {
     	
     }
 
+   @Test
+   public void testGetRegularNotificationsByUun() throws Exception {
+	   
+	   Notification notification = new Notification();
+       notification.setBody("<p>Regular Notification 1</p>");
+       notification.setTopic("Notification");
+       notification.setPublisherId("notify-ui");
+       notification.setPublisherNotificationId("10");
+       notification.setTitle("Notify Announcement 1");
+       notification.setUrl("http://www.google.co.uk");
+       notification.setStartDate(date);
+       notification.setEndDate(date);
+       
+       List<NotificationUser> users = new ArrayList<NotificationUser>();
+       NotificationUser user = new NotificationUser();
+       user.setNotification(notification);
+       user.setId(new NotificationUserPK(null,"donald"));
+       users.add(user);
+       
+       notification.setNotificationUsers(users);
+       notificationRepository.save(notification);
+       
+       notification = new Notification();
+       notification.setBody("<p>Regular Notification 2</p>");
+       notification.setTopic("Notification");
+       notification.setPublisherId("notify-ui");
+       notification.setPublisherNotificationId("11");
+       notification.setTitle("Notify Announcement 2");
+       notification.setUrl("http://www.google.co.uk");
+       notification.setStartDate(date);
+       notification.setEndDate(date);
+       
+       users = new ArrayList<NotificationUser>();
+       user = new NotificationUser();
+       user.setNotification(notification);
+       user.setId(new NotificationUserPK(null,"gozer"));
+       users.add(user);
+       
+       notification.setNotificationUsers(users);
+       notificationRepository.save(notification);
+
+       this.mockMvc.perform(get("/notifications/user/gozer"))
+	       .andExpect(status().isOk())
+	       .andExpect(jsonPath("$", hasSize(1)))
+	       .andExpect(jsonPath("$[0].body", is("<p>Regular Notification 2</p>")))
+	       .andExpect(jsonPath("$[0].notificationUsers", hasSize(1)))
+	       .andExpect(jsonPath("$[0].notificationUsers[0].user.uun", is("gozer")));
+       
+   }
+   
+   
+   @Test
+   public void testCreateEmergencyNotification() throws Exception {
+	   
+	   Notification notification = new Notification();
+       notification.setBody("<p>Emergency Notification</p>");
+       notification.setTopic("Emergency");
+       notification.setPublisherId("notify-ui");
+       notification.setPublisherNotificationId("10");
+       notification.setTitle("Announcement");
+       notification.setUrl("http://www.google.co.uk");
+       notification.setStartDate(date);
+       notification.setEndDate(date);
+       notification.setLastUpdated(date);
+       
+       ObjectMapper mapper = new ObjectMapper();
+       String jsonString  = mapper.writeValueAsString(notification);
+       
+       String response = this.mockMvc.perform(post("/notification/")
+    		   .contentType(MediaType.APPLICATION_JSON)
+               .content(jsonString))
+               .andExpect(status().isOk())
+       
+               .andExpect(jsonPath("$.notificationId", is(notNullValue())))
+               .andExpect(jsonPath("$.notificationUsers", is(nullValue())))
+               .andReturn().getResponse().getContentAsString();
+       
+       notification = mapper.readValue(response, Notification.class);
+       
+       Notification savedInstance = notificationRepository.findOne(notification.getNotificationId());
+       assertThat(savedInstance, is(notNullValue()));
+       assertThat(savedInstance.getNotificationId(), is(notification.getNotificationId()));
+       assertThat(savedInstance.getNotificationUsers(), hasSize(0));
+   }
+   
+   @Test @Ignore
+   public void testCreateRegularNotification() throws Exception {
+	   //TODO unable to deserialize user
+	   Notification notification = new Notification();
+       notification.setBody("<p>Regular Notification 1</p>");
+       notification.setTopic("Notification");
+       notification.setPublisherId("notify-ui");
+       notification.setPublisherNotificationId("10");
+       notification.setTitle("Notify Announcement 1");
+       notification.setUrl("http://www.google.co.uk");
+       notification.setStartDate(date);
+       notification.setEndDate(date);
+       
+       List<NotificationUser> users = new ArrayList<NotificationUser>();
+       NotificationUser user = new NotificationUser();
+       user.setId(new NotificationUserPK(null,"donald"));
+       users.add(user);
+       notification.setNotificationUsers(users);
+       
+       ObjectMapper mapper = new ObjectMapper();
+       String jsonString  = mapper.writeValueAsString(notification);
+       
+	   this.mockMvc.perform(post("/notification/")
+    		   .contentType(MediaType.APPLICATION_JSON)
+               .content(jsonString))
+               .andExpect(status().isOk())
+       
+               .andExpect(jsonPath("$.notificationId", is(notNullValue())))
+               .andExpect(jsonPath("$.notificationUsers", hasSize(1)));       
+   }
+   
    
 }
