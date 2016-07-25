@@ -269,9 +269,9 @@ public class NotificationControllerTest {
        assertThat(savedInstance.getNotificationUsers(), hasSize(0));
    }
    
-   @Test @Ignore
+   @Test
    public void testCreateRegularNotification() throws Exception {
-	   //TODO unable to deserialize user
+
 	   Notification notification = new Notification();
        notification.setBody("<p>Regular Notification 1</p>");
        notification.setTopic("Notification");
@@ -281,6 +281,7 @@ public class NotificationControllerTest {
        notification.setUrl("http://www.google.co.uk");
        notification.setStartDate(date);
        notification.setEndDate(date);
+       notification.setLastUpdated(date);
        
        List<NotificationUser> users = new ArrayList<NotificationUser>();
        NotificationUser user = new NotificationUser();
@@ -291,13 +292,21 @@ public class NotificationControllerTest {
        ObjectMapper mapper = new ObjectMapper();
        String jsonString  = mapper.writeValueAsString(notification);
        
-	   this.mockMvc.perform(post("/notification/")
+	   String response = this.mockMvc.perform(post("/notification/")
     		   .contentType(MediaType.APPLICATION_JSON)
                .content(jsonString))
                .andExpect(status().isOk())
-       
                .andExpect(jsonPath("$.notificationId", is(notNullValue())))
-               .andExpect(jsonPath("$.notificationUsers", hasSize(1)));       
+               .andExpect(jsonPath("$.notificationUsers", hasSize(1)))
+               
+               .andReturn().getResponse().getContentAsString();
+       
+       notification = mapper.readValue(response, Notification.class);
+       
+       Notification savedInstance = notificationRepository.findOne(notification.getNotificationId());
+       assertThat(savedInstance, is(notNullValue()));
+       assertThat(savedInstance.getNotificationUsers(), hasSize(1));
+       assertThat(savedInstance.getNotificationUsers().get(0).getId().getUun(), is("donald"));
    }
    
    
