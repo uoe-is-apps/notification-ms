@@ -126,7 +126,7 @@ public class NotificationController {
         		notification.setNotificationId(null);
         		
         		List<NotificationUser> users = notification.getNotificationUsers();
-        		if (users != null) {
+        		if (!users.isEmpty()) {
         			for (int i = 0; i < users.size(); i++) {
             			users.get(i).setNotification(notification);
             		}
@@ -179,12 +179,14 @@ public class NotificationController {
         try
         {
         	List<NotificationUser> users = notification.getNotificationUsers();
-    		for (int i = 0; i < users.size(); i++) {
-    			users.get(i).setNotification(notification);
-    			users.get(i).getId().setNotificationId(notificationId);
-    		}
-    		notification.setNotificationUsers(users);
-    		
+        	if (!users.isEmpty()) {
+        		for (int i = 0; i < users.size(); i++) {
+        			users.get(i).setNotification(notification);
+        			users.get(i).getId().setNotificationId(notificationId);
+        		}
+        		notification.setNotificationUsers(users);
+        	}
+
             notificationRepository.save(notification);
             /*UserNotificationAudit userNotificationAudit = new UserNotificationAudit();
             userNotificationAudit.setAction(AuditActions.UPDATE_NOTIFICATION);

@@ -1,23 +1,14 @@
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.isEmptyOrNullString;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -26,7 +17,6 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
@@ -37,9 +27,7 @@ import uk.ac.ed.notify.repository.PublisherDetailsRepository;
 import uk.ac.ed.notify.repository.SubscriberDetailsRepository;
 import uk.ac.ed.notify.repository.TopicSubscriptionRepository;
 import uk.ac.ed.notify.repository.UserNotificationAuditRepository;
-import uk.ac.ed.notify.repository.test.*;
-
-import javax.servlet.ServletException;
+import uk.ac.ed.notify.repository.test.NotificationUserRepository;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -63,6 +51,9 @@ public class NotificationControllerTest {
 
     @Autowired
     NotificationRepository notificationRepository;
+    
+    @Autowired
+    NotificationUserRepository notificationUserRepository;
 
     @Autowired
     PublisherDetailsRepository publisherDetailsRepository;
@@ -123,6 +114,7 @@ public class NotificationControllerTest {
         notification.setUrl("http://www.google.co.uk");
         notification.setStartDate(date);
         notification.setEndDate(date);
+        notification.setLastUpdated(new Date());
         
         List<NotificationUser> users = new ArrayList<NotificationUser>();
         NotificationUser user = new NotificationUser();
@@ -162,6 +154,7 @@ public class NotificationControllerTest {
         notification.setUrl("http://www.google.co.uk");
         notification.setStartDate(date);
         notification.setEndDate(date);
+        notification.setLastUpdated(new Date());
         
         List<NotificationUser> users = new ArrayList<NotificationUser>();
         NotificationUser user = new NotificationUser();
@@ -196,6 +189,7 @@ public class NotificationControllerTest {
        notification.setUrl("http://www.google.co.uk");
        notification.setStartDate(date);
        notification.setEndDate(date);
+       notification.setLastUpdated(new Date());
        
        List<NotificationUser> users = new ArrayList<NotificationUser>();
        NotificationUser user = new NotificationUser();
@@ -215,6 +209,7 @@ public class NotificationControllerTest {
        notification.setUrl("http://www.google.co.uk");
        notification.setStartDate(date);
        notification.setEndDate(date);
+       notification.setLastUpdated(new Date());
        
        users = new ArrayList<NotificationUser>();
        user = new NotificationUser();
@@ -247,7 +242,7 @@ public class NotificationControllerTest {
        notification.setUrl("http://www.google.co.uk");
        notification.setStartDate(date);
        notification.setEndDate(date);
-       notification.setLastUpdated(date);
+       notification.setLastUpdated(new Date());
        
        ObjectMapper mapper = new ObjectMapper();
        String jsonString  = mapper.writeValueAsString(notification);
@@ -258,7 +253,7 @@ public class NotificationControllerTest {
                .andExpect(status().isOk())
        
                .andExpect(jsonPath("$.notificationId", is(notNullValue())))
-               .andExpect(jsonPath("$.notificationUsers", is(nullValue())))
+               .andExpect(jsonPath("$.notificationUsers", hasSize(0)))
                .andReturn().getResponse().getContentAsString();
        
        notification = mapper.readValue(response, Notification.class);
@@ -281,7 +276,7 @@ public class NotificationControllerTest {
        notification.setUrl("http://www.google.co.uk");
        notification.setStartDate(date);
        notification.setEndDate(date);
-       notification.setLastUpdated(date);
+       notification.setLastUpdated(new Date());
        
        List<NotificationUser> users = new ArrayList<NotificationUser>();
        NotificationUser user = new NotificationUser();
@@ -309,5 +304,271 @@ public class NotificationControllerTest {
        assertThat(savedInstance.getNotificationUsers().get(0).getId().getUun(), is("donald"));
    }
    
+   @Test
+   public void testUpdateEmergencyNotification() throws Exception {
+	   
+	   Notification notification = new Notification();
+       notification.setBody("<p>Emergency Notification</p>");
+       notification.setTopic("Emergency");
+       notification.setPublisherId("notify-ui");
+       notification.setPublisherNotificationId("10");
+       notification.setTitle("Announcement");
+       notification.setUrl("http://www.google.co.uk");
+       notification.setStartDate(date);
+       notification.setEndDate(date);
+       notification.setLastUpdated(new Date());
+       notificationRepository.save(notification);
+       
+       String notificationId = notification.getNotificationId();
+       assertThat(notificationId, is(notNullValue()));
+       notification.setTitle("Updated announcement");
+       
+       ObjectMapper mapper = new ObjectMapper();
+       String jsonString = mapper.writeValueAsString(notification);
+       
+       this.mockMvc.perform(put("/notification/"+notificationId)
+    		   .content(jsonString)
+    		   .contentType(MediaType.APPLICATION_JSON))
+    		   .andExpect(status().isOk());
+       
+       Notification savedNotification = notificationRepository.findOne(notificationId);
+       assertThat(savedNotification.getTitle(), is("Updated announcement"));
+   }
    
+   @Test
+   public void testUpdateRegularNotificationAddUser() throws Exception {
+	   
+	   Notification notification = new Notification();
+       notification.setBody("<p>Regular Notification 1</p>");
+       notification.setTopic("Notification");
+       notification.setPublisherId("notify-ui");
+       notification.setPublisherNotificationId("10");
+       notification.setTitle("Notify Announcement 1");
+       notification.setUrl("http://www.google.co.uk");
+       notification.setStartDate(date);
+       notification.setEndDate(date);
+       notification.setLastUpdated(new Date());
+       
+       List<NotificationUser> users = new ArrayList<NotificationUser>();
+       NotificationUser user = new NotificationUser();
+       user.setNotification(notification);
+       user.setId(new NotificationUserPK(null,"donald"));
+       users.add(user);
+       
+       notification.setNotificationUsers(users);
+       notificationRepository.save(notification);
+       
+       String notificationId = notification.getNotificationId();
+       assertThat(notificationId, is(notNullValue()));
+       
+       user = new NotificationUser();
+       user.setId(new NotificationUserPK(null,"gozer"));
+       users.add(user);
+       notification.setNotificationUsers(users);
+       
+       ObjectMapper mapper = new ObjectMapper();
+       String jsonString = mapper.writeValueAsString(notification);
+       
+       this.mockMvc.perform(put("/notification/"+notificationId)
+    		   .content(jsonString)
+    		   .contentType(MediaType.APPLICATION_JSON))
+    		   .andExpect(status().isOk());
+       
+       Notification savedNotification = notificationRepository.findOne(notificationId);
+       assertThat(savedNotification.getNotificationUsers(), hasSize(2));
+       
+       List<String> userNames = new ArrayList<String>(2);
+       userNames.add(savedNotification.getNotificationUsers().get(0).getId().getUun());
+       userNames.add(savedNotification.getNotificationUsers().get(1).getId().getUun());
+       
+       assertThat(userNames, hasItems("donald","gozer")); 
+   }
+   
+   @Test
+   public void testUpdateRegularNotificationRemoveUser() throws Exception {
+	   
+	   Notification notification = new Notification();
+       notification.setBody("<p>Regular Notification 1</p>");
+       notification.setTopic("Notification");
+       notification.setPublisherId("notify-ui");
+       notification.setPublisherNotificationId("10");
+       notification.setTitle("Notify Announcement 1");
+       notification.setUrl("http://www.google.co.uk");
+       notification.setStartDate(date);
+       notification.setEndDate(date);
+       notification.setLastUpdated(new Date());
+       
+       List<NotificationUser> users = new ArrayList<NotificationUser>();
+       
+       NotificationUser user = new NotificationUser();
+       user.setNotification(notification);
+       user.setId(new NotificationUserPK(null,"donald"));
+       users.add(user);
+       
+       user = new NotificationUser();
+       user.setNotification(notification);
+       user.setId(new NotificationUserPK(null,"gozer"));
+       users.add(user);
+       
+       notification.setNotificationUsers(users);
+       notificationRepository.save(notification);
+       
+       String notificationId = notification.getNotificationId();
+       assertThat(notificationId, is(notNullValue()));
+       
+       users.remove(user); //removing gozer
+       
+       ObjectMapper mapper = new ObjectMapper();
+       String jsonString = mapper.writeValueAsString(notification);
+       
+       this.mockMvc.perform(put("/notification/"+notificationId)
+    		   .content(jsonString)
+    		   .contentType(MediaType.APPLICATION_JSON))
+    		   .andExpect(status().isOk());
+       
+       Notification savedNotification = notificationRepository.findOne(notificationId);
+       assertThat(savedNotification.getNotificationUsers(), hasSize(1));
+       assertThat(savedNotification.getNotificationUsers().get(0).getId().getUun(), is("donald"));
+   }
+   
+   @Test
+   public void testDeleteRegularNotification() throws Exception {
+	   
+	   Notification notification = new Notification();
+       notification.setBody("<p>Regular Notification 1</p>");
+       notification.setTopic("Notification");
+       notification.setPublisherId("notify-ui");
+       notification.setPublisherNotificationId("10");
+       notification.setTitle("Notify Announcement 1");
+       notification.setUrl("http://www.google.co.uk");
+       notification.setStartDate(date);
+       notification.setEndDate(date);
+       notification.setLastUpdated(new Date());
+       
+       List<NotificationUser> users = new ArrayList<NotificationUser>();
+       
+       NotificationUser user = new NotificationUser();
+       user.setNotification(notification);
+       user.setId(new NotificationUserPK(null,"donald"));
+       users.add(user);
+       
+       user = new NotificationUser();
+       user.setNotification(notification);
+       user.setId(new NotificationUserPK(null,"gozer"));
+       users.add(user);
+       
+       notification.setNotificationUsers(users);
+       notificationRepository.save(notification);
+       
+       String notificationId = notification.getNotificationId();
+       assertThat(notificationId, is(notNullValue()));
+       
+       this.mockMvc.perform(delete("/notification/"+notificationId))
+       			.andExpect(status().isOk());
+       
+       Notification savedNotification = notificationRepository.findOne(notificationId);
+       assertThat(savedNotification, is(nullValue()));
+       
+       List<NotificationUser> notificationUsers = notificationUserRepository.findByIdNotificationId(notificationId);
+       assertThat(notificationUsers, is(empty()));
+   }
+   
+   @Test
+   public void testGetEmergencyNotifications() throws Exception {
+	   
+	   Notification notification = new Notification();
+       notification.setBody("<p>Emergency Notification 1</p>");
+       notification.setTopic("Emergency");
+       notification.setPublisherId("notify-ui");
+       notification.setPublisherNotificationId("12");
+       notification.setTitle("Emergency 1");
+       notification.setUrl("http://www.google.co.uk");
+       notification.setStartDate(date);
+       notification.setEndDate(dateFuture);
+       notification.setLastUpdated(new Date());
+       notificationRepository.save(notification);
+       
+       notification = new Notification();
+       notification.setBody("<p>Emergency Notification 2</p>");
+       notification.setTopic("Emergency");
+       notification.setPublisherId("notify-ui");
+       notification.setPublisherNotificationId("10");
+       notification.setTitle("Emergency 2");
+       notification.setUrl("http://www.google.co.uk");
+       notification.setStartDate(date);
+       notification.setEndDate(dateFuture);
+       notification.setLastUpdated(new Date());
+       notificationRepository.save(notification);
+       
+       this.mockMvc.perform(get("/emergencynotifications"))
+       		.andExpect(status().isOk())
+       		.andExpect(jsonPath("$.categories[0].entries", hasSize(2)))
+       		.andExpect(jsonPath("$.categories[0].entries[0].title",is("Emergency 1")))
+            .andExpect(jsonPath("$.categories[0].entries[1].title",is("Emergency 2")));       
+   }
+   
+   @Test
+   public void testGetUserNotifications() throws Exception {
+	   
+	   SubscriberDetails subscriberDetails = new SubscriberDetails();
+       subscriberDetails.setSubscriberId("TESTSUB");
+       subscriberDetails.setStatus("A");
+       subscriberDetails.setType("PULL");
+       subscriberDetails.setLastUpdated(date);
+       subscriberDetailsRepository.save(subscriberDetails);
+       
+       TopicSubscription topicSubscription = new TopicSubscription();
+       topicSubscription.setStatus("A");
+       topicSubscription.setLastUpdated(new Date());
+       topicSubscription.setSubscriberId("TESTSUB");
+       topicSubscription.setTopic("Notification");
+       topicSubscriptionRepository.save(topicSubscription);
+       
+       Notification notification = new Notification();
+       notification.setBody("<p>Regular Notification 1</p>");
+       notification.setTopic("Notification");
+       notification.setPublisherId("notify-ui");
+       notification.setPublisherNotificationId("10");
+       notification.setTitle("Notify Announcement 1");
+       notification.setUrl("http://www.google.co.uk");
+       notification.setStartDate(date);
+       notification.setEndDate(date);
+       notification.setLastUpdated(new Date());
+       
+       List<NotificationUser> users = new ArrayList<NotificationUser>();
+       NotificationUser user = new NotificationUser();
+       user.setNotification(notification);
+       user.setId(new NotificationUserPK(null,"donald"));
+       users.add(user);
+       
+       notification.setNotificationUsers(users);
+       notificationRepository.save(notification);
+       
+       notification = new Notification();
+       notification.setBody("<p>Regular Notification 2</p>");
+       notification.setTopic("Notification");
+       notification.setPublisherId("notify-ui");
+       notification.setPublisherNotificationId("11");
+       notification.setTitle("Notify Announcement 2");
+       notification.setUrl("http://www.google.co.uk");
+       notification.setStartDate(date);
+       notification.setEndDate(dateFuture);
+       notification.setLastUpdated(new Date());
+       
+       users = new ArrayList<NotificationUser>();
+       user = new NotificationUser();
+       user.setNotification(notification);
+       user.setId(new NotificationUserPK(null,"donald"));
+       users.add(user);
+       
+       notification.setNotificationUsers(users);
+       notificationRepository.save(notification);
+       
+       this.mockMvc.perform(get("/usernotifications/TESTSUB").with((MockHttpServletRequest request) -> {
+           request.setParameter("user.login.id","donald");
+           return request;
+       }))
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$.categories[0].title",is("Notification")));
+   }
 }

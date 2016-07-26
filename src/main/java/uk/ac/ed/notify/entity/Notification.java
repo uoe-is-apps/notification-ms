@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.persistence.*;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -71,7 +72,7 @@ public class Notification {
         private Date lastUpdated;
 
         @OneToMany(fetch = FetchType.EAGER, mappedBy = "notification", cascade = CascadeType.ALL, orphanRemoval = true)
-        private List<NotificationUser> notificationUsers;
+        private List<NotificationUser> notificationUsers = new ArrayList<NotificationUser>();
         
         public String getNotificationId() {
                 return notificationId;
