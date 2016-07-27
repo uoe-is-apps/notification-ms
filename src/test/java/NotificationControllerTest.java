@@ -33,6 +33,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import javax.servlet.ServletException;
+
 import static org.junit.Assert.assertThat;
 import static org.hamcrest.Matchers.*;
 
@@ -431,6 +433,107 @@ public class NotificationControllerTest {
        assertThat(savedNotification.getNotificationUsers().get(0).getId().getUun(), is("donald"));
    }
    
+   @Test(expected = ServletException.class)
+   public void testUpdateNotificationMismatchedNotificationId() throws Exception
+   {
+	   Notification notification = new Notification();
+       notification.setBody("<p>Regular Notification 1</p>");
+       notification.setTopic("Notification");
+       notification.setPublisherId("notify-ui");
+       notification.setPublisherNotificationId("10");
+       notification.setTitle("Notify Announcement 1");
+       notification.setUrl("http://www.google.co.uk");
+       notification.setStartDate(date);
+       notification.setEndDate(date);
+       notification.setLastUpdated(new Date());
+       
+       List<NotificationUser> users = new ArrayList<NotificationUser>();
+       NotificationUser user = new NotificationUser();
+       user.setNotification(notification);
+       user.setId(new NotificationUserPK(null,"donald"));
+       users.add(user);
+       
+       notification.setNotificationUsers(users);
+       notificationRepository.save(notification);
+       
+       String notificationId = notification.getNotificationId();
+       assertThat(notificationId, is(notNullValue()));
+       
+       notification.setTitle("Notify announcement update");
+       ObjectMapper objMapper = new ObjectMapper();
+       String jsonString = objMapper.writeValueAsString(notification);
+       
+       this.mockMvc.perform(put("/notification/12")
+               .content(jsonString)
+               .contentType(MediaType.APPLICATION_JSON));
+   }
+   
+   @Test(expected = ServletException.class)
+   public void testUpdateNotificationUpdatePublisher() throws Exception
+   {
+	   Notification notification = new Notification();
+       notification.setBody("<p>Regular Notification 1</p>");
+       notification.setTopic("Notification");
+       notification.setPublisherId("notify-ui");
+       notification.setPublisherNotificationId("10");
+       notification.setTitle("Notify Announcement 1");
+       notification.setUrl("http://www.google.co.uk");
+       notification.setStartDate(date);
+       notification.setEndDate(date);
+       notification.setLastUpdated(new Date());
+       
+       List<NotificationUser> users = new ArrayList<NotificationUser>();
+       NotificationUser user = new NotificationUser();
+       user.setNotification(notification);
+       user.setId(new NotificationUserPK(null,"donald"));
+       users.add(user);
+       
+       notification.setNotificationUsers(users);
+       notificationRepository.save(notification);
+       
+       String notificationId = notification.getNotificationId();
+       assertThat(notificationId, is(notNullValue()));
+       
+       notification.setPublisherId("other-publisher");
+       
+       ObjectMapper objMapper = new ObjectMapper();
+       String jsonString = objMapper.writeValueAsString(notification);
+       
+       this.mockMvc.perform(put("/notification/"+notificationId)
+               .content(jsonString)
+               .contentType(MediaType.APPLICATION_JSON));
+   }
+   
+   @Test(expected = ServletException.class)
+   public void testUpdateNotificationNoNotification() throws Exception
+   {
+	   Notification notification = new Notification();
+	   notification.setNotificationId("abcdid");
+       notification.setBody("<p>Regular Notification 1</p>");
+       notification.setTopic("Notification");
+       notification.setPublisherId("notify-ui");
+       notification.setPublisherNotificationId("10");
+       notification.setTitle("Notify Announcement 1");
+       notification.setUrl("http://www.google.co.uk");
+       notification.setStartDate(date);
+       notification.setEndDate(date);
+       notification.setLastUpdated(new Date());
+       
+       List<NotificationUser> users = new ArrayList<NotificationUser>();
+       NotificationUser user = new NotificationUser();
+       user.setNotification(notification);
+       user.setId(new NotificationUserPK(null,"donald"));
+       users.add(user);
+       notification.setNotificationUsers(users);
+  
+       ObjectMapper objMapper = new ObjectMapper();
+       String jsonString = objMapper.writeValueAsString(notification);
+       
+       this.mockMvc.perform(put("/notification/"+notification.getNotificationId())
+               .content(jsonString)
+               .contentType(MediaType.APPLICATION_JSON));
+   }
+    
    @Test
    public void testDeleteRegularNotification() throws Exception {
 	   
@@ -570,5 +673,23 @@ public class NotificationControllerTest {
        }))
                .andExpect(status().isOk())
                .andExpect(jsonPath("$.categories[0].title",is("Notification")));
+   }
+   
+   @Test
+   public void testGetUserNotificationsWithInactiveSubscriber() throws Exception {
+       this.mockMvc.perform(get("/usernotifications/INVALIDSUB").with((MockHttpServletRequest request) -> {
+           request.setParameter("user.login.id","TESTUUN");
+           return request;
+       }))
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$.errors[0].error",is("Invalid subscriber or subscriber inactive")));
+
+   }
+   
+   @Test
+   public void testGetUserNotificationsWithNoUser() throws Exception {
+       this.mockMvc.perform(get("/usernotifications/TESTSUB"))
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$.errors[0].error", is("No UUN provided")));
    }
 }
