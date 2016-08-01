@@ -56,7 +56,7 @@ public class NotificationUserPK implements Serializable {
 		if (!pk.getUun().equals(this.getUun())) {
 			return false;
 		}
-		return false;
+		return true;
 	}
 	
 	@Override

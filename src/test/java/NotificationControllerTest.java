@@ -307,6 +307,41 @@ public class NotificationControllerTest {
    }
    
    @Test
+   public void testCreateRegularNotificationUserAudit() throws Exception{
+	   
+	   Notification notification = new Notification();
+       notification.setBody("<p>Regular Notification 1</p>");
+       notification.setTopic("Notification");
+       notification.setPublisherId("notify-ui");
+       notification.setPublisherNotificationId("10");
+       notification.setTitle("Notify Announcement 1");
+       notification.setUrl("http://www.google.co.uk");
+       notification.setStartDate(date);
+       notification.setEndDate(date);
+       notification.setLastUpdated(new Date());
+       
+       List<NotificationUser> users = new ArrayList<NotificationUser>();
+       NotificationUser user = new NotificationUser();
+       user.setId(new NotificationUserPK(null,"donald"));
+       users.add(user);
+       notification.setNotificationUsers(users);
+       
+       ObjectMapper mapper = new ObjectMapper();
+       String jsonString  = mapper.writeValueAsString(notification);
+       
+	   String response = this.mockMvc.perform(post("/notification/")
+    		   .contentType(MediaType.APPLICATION_JSON)
+               .content(jsonString))
+               .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+	   
+	   notification = mapper.readValue(response, Notification.class);
+	   
+	   List<UserNotificationAudit> audit = (List<UserNotificationAudit>) userNotificationAuditRepository.findAll();
+	   assertThat(audit.get(0).getNotificationId(), is(notification.getNotificationId()));
+	   assertThat(audit.get(0).getAction(), is(AuditActions.CREATE_NOTIFICATION));
+   }
+   
+   @Test
    public void testUpdateEmergencyNotification() throws Exception {
 	   
 	   Notification notification = new Notification();

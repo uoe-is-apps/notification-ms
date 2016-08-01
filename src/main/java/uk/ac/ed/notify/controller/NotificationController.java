@@ -1,5 +1,6 @@
 package uk.ac.ed.notify.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.Authorization;
 import com.wordnik.swagger.annotations.AuthorizationScope;
@@ -135,12 +136,14 @@ public class NotificationController {
         		
         		notificationRepository.save(notification);
         	}
-           /* UserNotificationAudit userNotificationAudit = new UserNotificationAudit();
+        	
+            UserNotificationAudit userNotificationAudit = new UserNotificationAudit();
             userNotificationAudit.setAction(AuditActions.CREATE_NOTIFICATION);
             userNotificationAudit.setAuditDate(new Date());
             userNotificationAudit.setPublisherId(notification.getPublisherId());
-            userNotificationAudit.setUun(notification.getUun());
-            userNotificationAuditRepository.save(userNotificationAudit);*/
+            userNotificationAudit.setNotificationId(notification.getNotificationId());
+            userNotificationAudit.setAuditDescription(new ObjectMapper().writeValueAsString(notification));
+            userNotificationAuditRepository.save(userNotificationAudit);
             return notification;
         }
         catch (Exception e)
@@ -188,12 +191,14 @@ public class NotificationController {
         	}
 
             notificationRepository.save(notification);
-            /*UserNotificationAudit userNotificationAudit = new UserNotificationAudit();
+            
+            UserNotificationAudit userNotificationAudit = new UserNotificationAudit();
             userNotificationAudit.setAction(AuditActions.UPDATE_NOTIFICATION);
             userNotificationAudit.setAuditDate(new Date());
             userNotificationAudit.setPublisherId(notification.getPublisherId());
-            userNotificationAudit.setUun(notification.getUun());
-            userNotificationAuditRepository.save(userNotificationAudit);*/
+            userNotificationAudit.setNotificationId(notification.getNotificationId());
+            userNotificationAudit.setAuditDescription(new ObjectMapper().writeValueAsString(notification));
+            userNotificationAuditRepository.save(userNotificationAudit);
         }
         catch (Exception e)
         {
@@ -215,13 +220,22 @@ public class NotificationController {
 
         try
         {   
-            notificationRepository.delete(notificationId);
-            /*UserNotificationAudit userNotificationAudit = new UserNotificationAudit();
-            userNotificationAudit.setAction(AuditActions.DELETE_NOTIFICATION);
-            userNotificationAudit.setAuditDate(new Date());
-            userNotificationAudit.setPublisherId(notification.getPublisherId());
-            userNotificationAudit.setUun(notification.getUun());
-            userNotificationAuditRepository.save(userNotificationAudit);*/
+        	Notification notification = notificationRepository.findOne(notificationId);
+        	if (notification != null) {
+        		
+        		notificationRepository.delete(notificationId);
+                
+                UserNotificationAudit userNotificationAudit = new UserNotificationAudit();
+                userNotificationAudit.setAction(AuditActions.DELETE_NOTIFICATION);
+                userNotificationAudit.setAuditDate(new Date());
+                userNotificationAudit.setPublisherId(notification.getPublisherId());
+                userNotificationAudit.setNotificationId(notification.getNotificationId());
+                userNotificationAudit.setAuditDescription(new ObjectMapper().writeValueAsString(notification));
+                userNotificationAuditRepository.save(userNotificationAudit);
+        	}
+        	else {
+        		throw new Exception("Notification " + notificationId + " does not exist");
+        	}
         }
         catch (Exception e)
         {

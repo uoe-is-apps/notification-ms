@@ -53,7 +53,7 @@ public class NotificationUser {
 		if (!user.getId().getUun().equals(this.getId().getUun())) {
 			return false;
 		}
-		return false;
+		return true;
 	}
 	
 	@Override
