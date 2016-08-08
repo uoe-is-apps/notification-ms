@@ -306,6 +306,28 @@ public class NotificationControllerTest {
        assertThat(savedInstance.getNotificationUsers().get(0).getId().getUun(), is("donald"));
    }
    
+   @Test(expected=ServletException.class)
+   public void testCreateRegularNotificationNoUsers() throws Exception {
+	   
+	   Notification notification = new Notification();
+       notification.setBody("<p>Regular Notification</p>");
+       notification.setTopic("Notification");
+       notification.setPublisherId("learn");
+       notification.setPublisherNotificationId("learn10");
+       notification.setTitle("Announcement");
+       notification.setUrl("http://www.google.co.uk");
+       notification.setStartDate(date);
+       notification.setEndDate(date);
+       notification.setLastUpdated(new Date());
+       
+       ObjectMapper mapper = new ObjectMapper();
+       String jsonString  = mapper.writeValueAsString(notification);
+       
+       this.mockMvc.perform(post("/notification/")
+    		   .contentType(MediaType.APPLICATION_JSON)
+               .content(jsonString));      
+   }
+   
    @Test
    public void testCreateRegularNotificationUserAudit() throws Exception{
 	   

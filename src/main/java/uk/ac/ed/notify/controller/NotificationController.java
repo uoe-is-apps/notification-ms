@@ -24,7 +24,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import java.security.Principal;
 import java.util.*;
 
 /**
@@ -85,6 +84,11 @@ public class NotificationController {
     @RequestMapping(value="/notifications/publisher/{publisher-id}",method = RequestMethod.GET)
     public List<Notification> getPublisherNotifications(@PathVariable("publisher-id") String publisherId, HttpServletResponse httpServletResponse, OAuth2Authentication authentication) throws ServletException {
 
+    	long expires = (new Date()).getTime()+cacheExpiry;
+
+        httpServletResponse.setHeader("cache-control", "public, max-age=" + cacheExpiry/1000 + ", cache");
+        httpServletResponse.setDateHeader("Expires", expires);
+        
     	if (authentication!=null && authentication.getOAuth2Request().getClientId().equals("notification-api-ui"))
         {
     		return NotificationStubResponse.getNotificationsList();
@@ -137,31 +141,26 @@ public class NotificationController {
     @RequestMapping(value="/notification/", method=RequestMethod.POST)
     public Notification setNotification(@RequestBody Notification notification, OAuth2Authentication authentication) throws ServletException {
 
-    	if (authentication !=null && authentication.getOAuth2Request().getClientId().equals("notification-api-ui"))
-        {
+    	if (authentication !=null && authentication.getOAuth2Request().getClientId().equals("notification-api-ui")) {
             notification.setNotificationId("12345-auto");
             return notification;
         }
-    	
-        try {
-        	if (notification != null) {
+    	if (!notification.getTopic().equals("Emergency") && notification.getNotificationUsers().isEmpty()) {
+    		throw new ServletException("Must add users for non broadcast notifications");
+    	}
         		
-        		if (!notification.getTopic().equals("Emergency") && notification.getNotificationUsers().isEmpty())
-                {
-                    throw new ServletException("Must add users for non broadcast notifications");
-                }
-        		notification.setNotificationId(null);
+        try { 		
+        	notification.setNotificationId(null);
         		
-        		List<NotificationUser> users = notification.getNotificationUsers();
-        		if (!users.isEmpty()) {
-        			for (int i = 0; i < users.size(); i++) {
-            			users.get(i).setNotification(notification);
-            		}
-        			notification.setNotificationUsers(users);
+        	List<NotificationUser> users = notification.getNotificationUsers();
+        	if (!users.isEmpty()) {
+        		for (int i = 0; i < users.size(); i++) {
+        			users.get(i).setNotification(notification);
         		}
-        		
-        		notificationRepository.save(notification);
+        		notification.setNotificationUsers(users);
         	}
+        		
+        	notificationRepository.save(notification);
         	
             UserNotificationAudit userNotificationAudit = new UserNotificationAudit();
             userNotificationAudit.setAction(AuditActions.CREATE_NOTIFICATION);
@@ -294,8 +293,13 @@ public class NotificationController {
     @ApiOperation(value="Get a list of categories containing notifications for a user",notes="Requires subcriber id to look up, and uun of user",
             authorizations = {@Authorization(value="oauth2",scopes = {@AuthorizationScope(scope="notifications.read",description = "Read access to notification API")})})
     @RequestMapping(value="/usernotifications/{subscriber-id}",method= RequestMethod.GET)
-    public NotificationResponse getUserNotificationsBySubscription(@PathVariable("subscriber-id") String subscriberId, HttpServletRequest httpServletRequest) {
-        String uun = httpServletRequest.getParameter("user.login.id");
+    public NotificationResponse getUserNotificationsBySubscription(@PathVariable("subscriber-id") String subscriberId, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
+    	long expires = (new Date()).getTime()+cacheExpiry;
+
+        httpServletResponse.setHeader("cache-control", "public, max-age=" + cacheExpiry/1000 + ", cache");
+        httpServletResponse.setDateHeader("Expires", expires);
+    	
+    	String uun = httpServletRequest.getParameter("user.login.id");
 
         NotificationResponse notificationResponse = new NotificationResponse();
 
@@ -381,8 +385,13 @@ public class NotificationController {
     @ApiOperation(value="Get all emergency notifications",notes="Independent of users",
             authorizations = {@Authorization(value="oauth2",scopes = {@AuthorizationScope(scope="notifications.read",description = "Read access to notification API")})})
     @RequestMapping(value="/emergencynotifications",method= RequestMethod.GET)
-    public NotificationResponse getEmergencyNotifications(OAuth2Authentication authentication) {
+    public NotificationResponse getEmergencyNotifications(OAuth2Authentication authentication, HttpServletResponse httpServletResponse) {
+        
+    	long expires = (new Date()).getTime()+cacheExpiry;
 
+        httpServletResponse.setHeader("cache-control", "public, max-age=" + cacheExpiry/1000 + ", cache");
+        httpServletResponse.setDateHeader("Expires", expires);
+        
         NotificationResponse notificationResponse = new NotificationResponse();
 
         if (authentication !=null && authentication.getOAuth2Request().getClientId().equals("notification-api-ui"))
