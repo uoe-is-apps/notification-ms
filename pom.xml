@@ -7,7 +7,7 @@
     <name>notification-ms</name>
     <groupId>uk.ac.ed.notify</groupId>
     <artifactId>notification-ms</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.1.0</version>
     <packaging>${packaging.type}</packaging>
     
     <parent>
