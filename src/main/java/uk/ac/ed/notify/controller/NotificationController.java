@@ -93,7 +93,8 @@ public class NotificationController {
         {
     		return NotificationStubResponse.getNotificationsList();
         }
-    	
+System.out.println("called called called");        
+if(true) return NotificationStubResponse.getNotificationsList();
         PublisherDetails publisherDetails = publisherDetailsRepository.findOne(publisherId);
         if (publisherDetails==null||!publisherDetails.getStatus().equals("A"))
         {
@@ -326,8 +327,6 @@ public class NotificationController {
 
             Calendar cal = Calendar.getInstance();
             Date dateNow = cal.getTime();
-            cal.add(Calendar.YEAR, 1);
-            Date nextYear = cal.getTime();
 
             List<NotificationCategory> categories = new ArrayList<NotificationCategory>();
             NotificationCategory category;
@@ -343,14 +342,8 @@ public class NotificationController {
                     entry = new NotificationEntry();
                     entry.setBody(notification.getBody());
                     entry.setTitle(notification.getTitle());
-                    if (notification.getEndDate()==null)
-                    {
-                        entry.setDueDate(nextYear);
-                    }
-                    else
-                    {
-                        entry.setDueDate(notification.getEndDate());
-                    }
+                    entry.setStartDate(notification.getStartDate());
+                    entry.setDueDate(notification.getEndDate());
                     entry.setUrl(notification.getUrl());
                     entries.add(entry);
                 }

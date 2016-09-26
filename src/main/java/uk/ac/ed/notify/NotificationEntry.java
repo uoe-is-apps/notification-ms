@@ -57,7 +57,10 @@ public class NotificationEntry implements Serializable, Cloneable {
 
     @JsonSerialize(using=JsonDateSerializer.class)
     private Date      dueDate;
-
+    
+    @JsonSerialize(using=JsonDateSerializer.class)
+    private Date      startDate;
+    
     private String    image;
     private String    body;
 
@@ -140,6 +143,7 @@ public class NotificationEntry implements Serializable, Cloneable {
         this.priority = priority;
     }
 
+
     /**
      * Optional date/time indicating by when the action described in this
      * notification must be completed.
@@ -150,6 +154,17 @@ public class NotificationEntry implements Serializable, Cloneable {
 
     public void setDueDate(Date dueDate) {
         this.dueDate = dueDate;
+    }    
+    
+    /**
+     * Date/time indicating when this notification is started
+     */
+    public Date getStartDate() {
+        return startDate;
+    }
+
+    public void setStartDate(Date startDate) {
+        this.startDate = startDate;
     }
 
     /**
