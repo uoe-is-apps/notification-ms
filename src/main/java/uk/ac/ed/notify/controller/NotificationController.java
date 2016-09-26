@@ -93,8 +93,6 @@ public class NotificationController {
         {
     		return NotificationStubResponse.getNotificationsList();
         }
-System.out.println("called called called");        
-if(true) return NotificationStubResponse.getNotificationsList();
         PublisherDetails publisherDetails = publisherDetailsRepository.findOne(publisherId);
         if (publisherDetails==null||!publisherDetails.getStatus().equals("A"))
         {
