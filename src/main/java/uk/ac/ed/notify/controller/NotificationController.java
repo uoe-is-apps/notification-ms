@@ -390,6 +390,13 @@ public class NotificationController {
             notificationResponse.setErrors(errors);
         }
 
+        try{
+            logger.error(notificationResponse.toString());
+            logger.error((notificationResponse.getCategories().get(0).getEntries().get(0).getStartDate().toString()));        
+        }catch(Exception e){
+            logger.error(e.toString());
+        }
+        
         return notificationResponse;
     }
 
