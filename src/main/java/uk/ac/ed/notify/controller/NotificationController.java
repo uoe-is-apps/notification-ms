@@ -342,8 +342,14 @@ public class NotificationController {
                     entry.setBody(notification.getBody());
                     entry.setTitle(notification.getTitle());
                     
-                    
-                    //entry.setStartDate(notification.getStartDate());
+                    if(notification.getStartDate() == null)
+                    {
+                        entry.setStartDate(new SimpleDateFormat("yyyy-MM-dd").parse("1970-01-01"));
+                    }
+                    else
+                    {                        
+                        entry.setStartDate(notification.getStartDate());
+                    }
                     
                     if (notification.getEndDate()==null)
                     {   //if no due date, this means the notification is open ended, however no due date
