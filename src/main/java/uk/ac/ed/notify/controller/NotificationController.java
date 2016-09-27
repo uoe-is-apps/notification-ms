@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.Authorization;
 import com.wordnik.swagger.annotations.AuthorizationScope;
+import java.text.SimpleDateFormat;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -341,7 +342,18 @@ public class NotificationController {
                     entry.setBody(notification.getBody());
                     entry.setTitle(notification.getTitle());
                     entry.setStartDate(notification.getStartDate());
-                    entry.setDueDate(notification.getEndDate());
+                    
+                    if (notification.getEndDate()==null)
+                    {   //if no due date, this means the notification is open ended, however no due date
+                        //may cause problem to end system that consumes notifications, i.e. notification portlet
+                        //set it to year 2099 to indicate this notification has no due date.
+                        entry.setDueDate(new SimpleDateFormat("yyyy-MM-dd").parse("2099-12-31"));
+                    }
+                    else
+                    {
+                        entry.setDueDate(notification.getEndDate());
+                    }
+                    
                     entry.setUrl(notification.getUrl());
                     entries.add(entry);
                 }
