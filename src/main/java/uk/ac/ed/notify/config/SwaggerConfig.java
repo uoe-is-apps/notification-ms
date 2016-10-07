@@ -1,79 +1,91 @@
 package uk.ac.ed.notify.config;
 
-import com.mangofactory.swagger.configuration.SpringSwaggerConfig;
-import com.mangofactory.swagger.models.dto.*;
-import com.mangofactory.swagger.models.dto.builder.OAuthBuilder;
-import com.mangofactory.swagger.plugin.EnableSwagger;
-import com.mangofactory.swagger.plugin.SwaggerSpringMvcPlugin;
-import org.springframework.beans.factory.annotation.Autowired;
+import springfox.documentation.service.ApiInfo;
+import springfox.documentation.service.AuthorizationScope;
+import springfox.documentation.service.GrantType;
+import springfox.documentation.service.ImplicitGrant;
+import springfox.documentation.service.LoginEndpoint;
+import springfox.documentation.service.SecurityScheme;
+import com.google.common.base.Predicate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.oauth2.provider.OAuth2Authentication;
-
-import java.security.Principal;
-import java.util.ArrayList;
+import springfox.documentation.builders.ApiInfoBuilder;
+import springfox.documentation.builders.OAuthBuilder;
+import springfox.documentation.spi.DocumentationType;
+import springfox.documentation.spring.web.plugins.Docket;
+import springfox.documentation.swagger2.annotations.EnableSwagger2;
 import java.util.List;
+import static com.google.common.base.Predicates.or;
+import static com.google.common.collect.Lists.newArrayList;
+import static springfox.documentation.builders.PathSelectors.regex;
 
 /**
- * Created by rgood on 29/05/2015.
+ *
+ * @author rgood
  */
 @Configuration
-@EnableSwagger
+@EnableSwagger2
 @EnableAutoConfiguration
 public class SwaggerConfig {
-
 
     @Value("${swagger.oauth.url}")
     private String swaggerOAuthUrl;
 
+    @Value("${swagger.basepath}")
+    private String swaggerBasePath;
 
-    private SpringSwaggerConfig springSwaggerConfig;
+    @Value("${swagger.docPath}")
+    private String swaggerDocPath;
 
-    @Autowired
-    public void setSpringSwaggerConfig(SpringSwaggerConfig springSwaggerConfig) {
-        this.springSwaggerConfig = springSwaggerConfig;
+    @Bean
+    public Docket swaggerSpringMvcPlugin() {
+        return new Docket(DocumentationType.SWAGGER_2)
+                .groupName("notification-ms")
+                .select()
+                .paths(paths())
+                .build()
+                .apiInfo(apiInfo())
+                .securitySchemes(newArrayList(oauth2()));
+    }
+
+    private Predicate<String> paths() {
+        return or(
+                regex("/emergencynotifications"), 
+                regex("/usernotifications/.*"), 
+                regex("/notification/.*"), 
+                regex("/notifications/.*")
+                );
+    }
+
+    private ApiInfo apiInfo() {
+        return new ApiInfoBuilder()
+                .title("Notification Backbone JSON API")
+                .description("This service provides the ability for publishers and subscribers to create/edit/delete/view notifications as appropriate.")
+                .version("2.0")
+                .build();
     }
 
     @Bean
-    public SwaggerSpringMvcPlugin customImplementation() {
-        return new SwaggerSpringMvcPlugin(this.springSwaggerConfig)
-                //This info will be used in Swagger. See realisation of ApiInfo for more details.
-                .apiInfo(new ApiInfo(
-                        "Notification Backbone JSON API",
-                        "This service provides the ability for publishers and subscribers to create/edit/delete/view notifications as appropriate.",
-                        null,
-                        null,
-                        null,
-                        null
-                ))
-                        //Here we disable auto generating of responses for REST-endpoints
-                .useDefaultResponseMessages(false)
-                        //Here we specify URI patterns which will be included in Swagger docs. Use regex for this purpose.
-                .includePatterns("/emergencynotifications", "/usernotifications/.*", "/notification/.*", "/notifications/.*")
-                .authorizationTypes(getAuthorizationTypes())
-                .ignoredParameterTypes(OAuth2Authentication.class, Principal.class);
-
-    }
-
-    private List<AuthorizationType> getAuthorizationTypes()
-    {
-        List<AuthorizationType> authorizationTypes = new ArrayList<>();
-        List<AuthorizationScope> scopes = new ArrayList<>();
-        scopes.add(new AuthorizationScope("notification.read","Read access on the notification API"));
-        scopes.add(new AuthorizationScope("notification.write","Write access on the notification API"));
-
-        List<GrantType> grantTypes = new ArrayList<>();
-        ImplicitGrant implicitGrant = new ImplicitGrant(new LoginEndpoint(swaggerOAuthUrl),"access_code");
-        grantTypes.add(implicitGrant);
-
-        AuthorizationType oauth = new OAuthBuilder()
-                .scopes(scopes)
-                .grantTypes(grantTypes)
+    SecurityScheme oauth2() {
+        return new OAuthBuilder()
+                .name("oauth2")
+                .grantTypes(grantTypes())
+                .scopes(scopes())
                 .build();
-        authorizationTypes.add(oauth);
-        return authorizationTypes;
     }
 
+    List<AuthorizationScope> scopes() {
+        return newArrayList(
+                (new AuthorizationScope("notification.read","Read access on the notification API")),
+                (new AuthorizationScope("notification.write","Write access on the notification API"))
+                );
+    }
+
+    List<GrantType> grantTypes() {
+        ImplicitGrant implicitGrant = new ImplicitGrant(new LoginEndpoint(swaggerOAuthUrl),"access_code");
+        return newArrayList(implicitGrant);
+    }
+    
 }

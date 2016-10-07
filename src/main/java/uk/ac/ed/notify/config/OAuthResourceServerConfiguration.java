@@ -25,7 +25,7 @@ public class OAuthResourceServerConfiguration extends ResourceServerConfigurerAd
     public void configure(HttpSecurity http) throws Exception {
         http.anonymous().and()
                 .authorizeRequests()
-                .antMatchers("/", "/lib/*", "/images/*", "/css/*", "/swagger-ui.js", "/api-docs", "/fonts/*", "/api-docs/*", "/api-docs/default/*", "/o2c.html").permitAll()
+                .antMatchers("/", "/lib/*", "/images/*", "/css/*", "/swagger-ui.js","/redoc.html","/swagger-ui.min.js","/swagger-resources","/swagger-resources/*" ,"/v2/api-docs", "/fonts/*", "/v2/api-docs/*", "/api-docs/default/*", "/o2c.html","index.html","/webjars/**","/hystrix/**","/hystrix.stream","/proxy.stream","/healthcheck","/providers","/provider/**").permitAll()                                               
                 .antMatchers(HttpMethod.GET, "/notification/**").access("#oauth2.hasScope('notification.read')")
                 .antMatchers(HttpMethod.GET, "/notifications/**").access("#oauth2.hasScope('notification.read')")
                 .antMatchers(HttpMethod.POST, "/notification/**").access("#oauth2.hasScope('notification.write')")

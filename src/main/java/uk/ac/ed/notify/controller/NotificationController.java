@@ -1,18 +1,16 @@
 package uk.ac.ed.notify.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wordnik.swagger.annotations.ApiOperation;
-import com.wordnik.swagger.annotations.Authorization;
-import com.wordnik.swagger.annotations.AuthorizationScope;
+import io.swagger.annotations.*;
+import org.springframework.security.core.context.SecurityContextImpl;
+import java.util.List;
 import java.text.SimpleDateFormat;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.web.bind.annotation.*;
-
 import uk.ac.ed.notify.NotificationCategory;
 import uk.ac.ed.notify.NotificationEntry;
 import uk.ac.ed.notify.NotificationError;
@@ -20,11 +18,9 @@ import uk.ac.ed.notify.NotificationResponse;
 import uk.ac.ed.notify.NotificationStubResponse;
 import uk.ac.ed.notify.entity.*;
 import uk.ac.ed.notify.repository.*;
-
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import java.util.*;
 
 /**
@@ -56,11 +52,17 @@ public class NotificationController {
     @Autowired
     NotificationErrorRepository notificationErrorRepository;
 
-    @ApiOperation(value="Get a specific notification",notes="Requires notification id to look up",
-    authorizations = {@Authorization(value="oauth2",scopes = {@AuthorizationScope(scope="notifications.read",description = "Read access to notification API")})})
+    @ApiOperation(value="Get a specific notification",notes="Requires notification id to look up", response = Notification.class,
+    authorizations = {@Authorization(value="oauth2",scopes = {@AuthorizationScope(scope="notifications.read",description = "Read access to notification API")})})    
+    @ApiResponses({@ApiResponse(code=404,message="Not found")})
     @RequestMapping(value="/notification/{notification-id}",method= RequestMethod.GET)
-    public Notification getNotification(@PathVariable("notification-id") String notificationId, HttpServletResponse httpServletResponse, OAuth2Authentication authentication) throws ServletException {
+    public Notification getNotification(@PathVariable("notification-id") String notificationId, HttpServletResponse httpServletResponse, HttpServletRequest httpServletRequest) throws ServletException {
 
+        OAuth2Authentication authentication = null;
+        try {
+            authentication = (OAuth2Authentication)((SecurityContextImpl)httpServletRequest.getSession().getAttribute(("SPRING_SECURITY_CONTEXT"))).getAuthentication();   
+    	} catch (Exception e) {}
+        
         long expires = (new Date()).getTime()+cacheExpiry;
 
         httpServletResponse.setHeader("cache-control", "public, max-age=" + cacheExpiry/1000 + ", cache");
@@ -68,9 +70,9 @@ public class NotificationController {
 
         try{
         	if (authentication != null && authentication.getOAuth2Request().getClientId().equals("notification-api-ui"))
-            {
+                {
                 return NotificationStubResponse.getSingleNotification();
-            }
+                }
         	return notificationRepository.findOne(notificationId);
         }
         catch (Exception e)
@@ -80,12 +82,18 @@ public class NotificationController {
         }
     }
 
-    @ApiOperation(value="Get notifications by publisher",notes="Retrieves all notifications for a specific publisher",
+    @ApiOperation(value="Get notifications by publisher",notes="Retrieves all notifications for a specific publisher", response = Notification.class,responseContainer = "List",
             authorizations = {@Authorization(value="oauth2",scopes = {@AuthorizationScope(scope="notifications.read",description = "Read access to notification API")})})
+    @ApiResponses({@ApiResponse(code=404,message="Not found")})
     @RequestMapping(value="/notifications/publisher/{publisher-id}",method = RequestMethod.GET)
-    public List<Notification> getPublisherNotifications(@PathVariable("publisher-id") String publisherId, HttpServletResponse httpServletResponse, OAuth2Authentication authentication) throws ServletException {
+    public List<Notification> getPublisherNotifications(@PathVariable("publisher-id") String publisherId, HttpServletResponse httpServletResponse, HttpServletRequest httpServletRequest) throws ServletException {
 
-    	long expires = (new Date()).getTime()+cacheExpiry;
+        OAuth2Authentication authentication = null;
+        try {
+            authentication = (OAuth2Authentication)((SecurityContextImpl)httpServletRequest.getSession().getAttribute(("SPRING_SECURITY_CONTEXT"))).getAuthentication();   
+    	} catch (Exception e) {}
+        
+        long expires = (new Date()).getTime()+cacheExpiry;
 
         httpServletResponse.setHeader("cache-control", "public, max-age=" + cacheExpiry/1000 + ", cache");
         httpServletResponse.setDateHeader("Expires", expires);
@@ -111,11 +119,17 @@ public class NotificationController {
         }
     }
     
-    @ApiOperation(value="Get notifications by user",notes="Requires uun to look up",
+    @ApiOperation(value="Get notifications by user",notes="Requires uun to look up", response = Notification.class,responseContainer = "List",
     	    authorizations = {@Authorization(value="oauth2",scopes = {@AuthorizationScope(scope="notifications.read",description = "Read access to notification API")})})
-    @RequestMapping(value="/notifications/user/{uun}", method= RequestMethod.GET)
-    public List<Notification> getUserNotifications(@PathVariable("uun") String uun, HttpServletResponse httpServletResponse,OAuth2Authentication authentication) throws ServletException {
-    	
+    @ApiResponses({@ApiResponse(code=404,message="Not found")})
+    @RequestMapping(value="/notifications/user/{uun}", method= RequestMethod.GET) 
+    public List<Notification> getUserNotifications(@PathVariable("uun") String uun, HttpServletResponse httpServletResponse, HttpServletRequest httpServletRequest) throws ServletException {
+        
+        OAuth2Authentication authentication = null;
+        try {
+            authentication = (OAuth2Authentication)((SecurityContextImpl)httpServletRequest.getSession().getAttribute(("SPRING_SECURITY_CONTEXT"))).getAuthentication();   
+    	} catch (Exception e) {}
+        
     	long expires = (new Date()).getTime()+cacheExpiry;
 
     	httpServletResponse.setHeader("cache-control", "public, max-age=" + cacheExpiry/1000 + ", cache");
@@ -123,9 +137,9 @@ public class NotificationController {
 
     	try{
     		if (authentication!=null && authentication.getOAuth2Request().getClientId().equals("notification-api-ui"))
-            {
+                {
     			return NotificationStubResponse.getNotificationsList();
-            }
+                }
     		return notificationRepository.findByUun(uun);
     	}
     	catch (Exception e)
@@ -136,11 +150,17 @@ public class NotificationController {
     	
     }
     
-    @ApiOperation(value="Create a new notification",notes="Requires a valid notification object. For creation DO NOT specify notificationId, one will be automatically generated.",
+    @ApiOperation(value="Create a new notification",notes="Requires a valid notification object. For creation DO NOT specify notificationId, one will be automatically generated.",response = Notification.class,
             authorizations = {@Authorization(value="oauth2",scopes = {@AuthorizationScope(scope="notifications.write",description = "Write access to notification API")})})
-    @RequestMapping(value="/notification/", method=RequestMethod.POST)
-    public Notification setNotification(@RequestBody Notification notification, OAuth2Authentication authentication) throws ServletException {
-
+    @ApiResponses({@ApiResponse(code=404,message="Not found")})
+    @RequestMapping(value="/notification/", method=RequestMethod.POST) 
+    public Notification setNotification(@RequestBody Notification notification, HttpServletRequest httpServletRequest) throws ServletException {
+        
+        OAuth2Authentication authentication = null;
+        try {
+            authentication = (OAuth2Authentication)((SecurityContextImpl)httpServletRequest.getSession().getAttribute(("SPRING_SECURITY_CONTEXT"))).getAuthentication();   
+    	} catch (Exception e) {}
+        
     	if (authentication !=null && authentication.getOAuth2Request().getClientId().equals("notification-api-ui")) {
             notification.setNotificationId("12345-auto");
             return notification;
@@ -185,9 +205,15 @@ public class NotificationController {
     
     @ApiOperation(value="Update notification",notes="Requires a valid notification object",
             authorizations = {@Authorization(value="oauth2",scopes = {@AuthorizationScope(scope="notifications.write",description = "Write access to notification API")})})
+    @ApiResponses({@ApiResponse(code=404,message="Not found")})
     @RequestMapping(value="/notification/{notification-id}",method=RequestMethod.PUT)
-    public void updateNotification(@PathVariable("notification-id") String notificationId, @RequestBody Notification notification, OAuth2Authentication authentication) throws ServletException {
-
+    public void updateNotification(@PathVariable("notification-id") String notificationId, @RequestBody Notification notification, HttpServletRequest httpServletRequest) throws ServletException {      
+        
+        OAuth2Authentication authentication = null;
+        try {
+            authentication = (OAuth2Authentication)((SecurityContextImpl)httpServletRequest.getSession().getAttribute(("SPRING_SECURITY_CONTEXT"))).getAuthentication();   
+    	} catch (Exception e) {}
+        
         if (!notificationId.equals(notification.getNotificationId()))
         {
             throw new ServletException("Notification ID and notification body do not match");
@@ -250,9 +276,15 @@ public class NotificationController {
 
     @ApiOperation(value="Delete a notification",notes="Requires a valid notification id",
             authorizations = {@Authorization(value="oauth2",scopes = {@AuthorizationScope(scope="notifications.write",description = "Write access to notification API")})})
+    @ApiResponses({@ApiResponse(code=404,message="Not found")})
     @RequestMapping(value="/notification/{notification-id}",method=RequestMethod.DELETE)
-    public void deleteNotification(@PathVariable("notification-id") String notificationId, OAuth2Authentication authentication) throws ServletException {
-
+    public void deleteNotification(@PathVariable("notification-id") String notificationId, HttpServletRequest httpServletRequest) throws ServletException {     
+        
+        OAuth2Authentication authentication = null;
+        try {
+            authentication = (OAuth2Authentication)((SecurityContextImpl)httpServletRequest.getSession().getAttribute(("SPRING_SECURITY_CONTEXT"))).getAuthentication();   
+    	} catch (Exception e) {}
+        
     	if (authentication !=null && authentication.getOAuth2Request().getClientId().equals("notification-api-ui"))
         {
             return;
@@ -263,7 +295,7 @@ public class NotificationController {
         	Notification notification = notificationRepository.findOne(notificationId);
         	if (notification != null) {
         		
-        		notificationRepository.delete(notificationId);
+        	notificationRepository.delete(notificationId);
                 
                 UserNotificationAudit userNotificationAudit = new UserNotificationAudit();
                 userNotificationAudit.setAction(AuditActions.DELETE_NOTIFICATION);
@@ -290,10 +322,17 @@ public class NotificationController {
 
     }
 
-    @ApiOperation(value="Get a list of categories containing notifications for a user",notes="Requires subcriber id to look up, and uun of user",
+    @ApiOperation(value="Get a list of categories containing notifications for a user",notes="Requires subcriber id to look up, and uun of user",response = NotificationResponse.class,
             authorizations = {@Authorization(value="oauth2",scopes = {@AuthorizationScope(scope="notifications.read",description = "Read access to notification API")})})
+    @ApiResponses({@ApiResponse(code=404,message="Not found")})
     @RequestMapping(value="/usernotifications/{subscriber-id}",method= RequestMethod.GET)
     public NotificationResponse getUserNotificationsBySubscription(@PathVariable("subscriber-id") String subscriberId, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
+        
+        OAuth2Authentication authentication = null;
+        try {
+            authentication = (OAuth2Authentication)((SecurityContextImpl)httpServletRequest.getSession().getAttribute(("SPRING_SECURITY_CONTEXT"))).getAuthentication();   
+    	} catch (Exception e) {}
+        
     	long expires = (new Date()).getTime()+cacheExpiry;
 
         httpServletResponse.setHeader("cache-control", "public, max-age=" + cacheExpiry/1000 + ", cache");
@@ -395,12 +434,18 @@ public class NotificationController {
         return notificationResponse;
     }
 
-    @ApiOperation(value="Get all emergency notifications",notes="Independent of users",
+    @ApiOperation(value="Get all emergency notifications",notes="Independent of users",response = NotificationResponse.class,
             authorizations = {@Authorization(value="oauth2",scopes = {@AuthorizationScope(scope="notifications.read",description = "Read access to notification API")})})
-    @RequestMapping(value="/emergencynotifications",method= RequestMethod.GET)
-    public NotificationResponse getEmergencyNotifications(OAuth2Authentication authentication, HttpServletResponse httpServletResponse) {
+    @ApiResponses({@ApiResponse(code=404,message="Not found")})
+    @RequestMapping(value="/emergencynotifications",method= RequestMethod.GET)//OAuth2Authentication authentication, 
+    public NotificationResponse getEmergencyNotifications(HttpServletResponse httpServletResponse, HttpServletRequest httpServletRequest) {
         
-    	long expires = (new Date()).getTime()+cacheExpiry;
+        OAuth2Authentication authentication = null;
+        try {
+            authentication = (OAuth2Authentication)((SecurityContextImpl)httpServletRequest.getSession().getAttribute(("SPRING_SECURITY_CONTEXT"))).getAuthentication();   
+    	} catch (Exception e) {}
+        
+        long expires = (new Date()).getTime()+cacheExpiry;
 
         httpServletResponse.setHeader("cache-control", "public, max-age=" + cacheExpiry/1000 + ", cache");
         httpServletResponse.setDateHeader("Expires", expires);
@@ -411,6 +456,7 @@ public class NotificationController {
         {
             return NotificationStubResponse.getNotificationResponse();
         }
+
         
         try {
 
