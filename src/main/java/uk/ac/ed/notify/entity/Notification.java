@@ -77,6 +77,17 @@ public class Notification {
         @Column(name="NOTIFICATION_GROUP")
         private String notificationGroup;
 
+        @Column(name="NOTIFICATION_GROUP_NAME")
+        private String notificationGroupName;
+
+        public String getNotificationGroupName() {
+            return notificationGroupName;
+        }    
+
+        public void setNotificationGroupName(String notificationGroupName) {
+            this.notificationGroupName = notificationGroupName;
+        }             
+        
         public String getNotificationGroup() {
             return notificationGroup;
         }
