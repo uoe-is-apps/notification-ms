@@ -74,6 +74,17 @@ public class Notification {
         @OneToMany(fetch = FetchType.EAGER, mappedBy = "notification", cascade = CascadeType.ALL, orphanRemoval = true)
         private List<NotificationUser> notificationUsers = new ArrayList<NotificationUser>();
         
+        @Column(name="NOTIFICATION_GROUP")
+        private String notificationGroup;
+
+        public String getNotificationGroup() {
+            return notificationGroup;
+        }
+
+        public void setNotificationGroup(String notificationGroup) {
+            this.notificationGroup = notificationGroup;
+        }
+        
         public String getNotificationId() {
                 return notificationId;
         }
