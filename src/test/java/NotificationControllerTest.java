@@ -226,8 +226,10 @@ public class NotificationControllerTest {
 	       .andExpect(status().isOk())
 	       .andExpect(jsonPath("$", hasSize(1)))
 	       .andExpect(jsonPath("$[0].body", is("<p>Regular Notification 2</p>")))
-	       .andExpect(jsonPath("$[0].notificationUsers", hasSize(1)))
-	       .andExpect(jsonPath("$[0].notificationUsers[0].user.uun", is("gozer")));
+               //we decided to not return list of uun as part of this api call
+	       .andExpect(jsonPath("$[0].notificationUsers", hasSize(0))) 
+	       //.andExpect(jsonPath("$[0].notificationUsers[0].user.uun", is("gozer"))
+               ;
        
    }
    
