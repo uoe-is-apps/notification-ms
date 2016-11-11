@@ -181,12 +181,12 @@ public class NotificationController {
         		
         try { 	
             
-logger.error("###1. setNotification - " + notification);
+//logger.error("###1. setNotification - " + notification);
             
         	notification.setNotificationId(null);
         		
         	List<NotificationUser> users = notification.getNotificationUsers();
-logger.error("###2. users - " + users.size());                 
+//logger.error("###2. users - " + users.size());                 
         	if (!users.isEmpty()) {
         		for (int i = 0; i < users.size(); i++) {
         			users.get(i).setNotification(notification);
@@ -195,11 +195,11 @@ logger.error("###2. users - " + users.size());
         		notification.setNotificationUsers(users);
         	}
         		
-logger.error("###3. before save");                 
+//logger.error("###3. before save");                 
                 
         	notificationRepository.save(notification);
         	
-logger.error("###4. after save, before audit");                           
+//logger.error("###4. after save, before audit");                           
                 
             UserNotificationAudit userNotificationAudit = new UserNotificationAudit();
             userNotificationAudit.setAction(AuditActions.CREATE_NOTIFICATION);
@@ -209,7 +209,7 @@ logger.error("###4. after save, before audit");
             userNotificationAudit.setAuditDescription(new ObjectMapper().writeValueAsString(notification));
             userNotificationAuditRepository.save(userNotificationAudit);
             
-logger.error("###5. after audit");     
+//logger.error("###5. after audit");     
 
             return notification;
         }
