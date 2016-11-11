@@ -221,7 +221,7 @@ public class NotificationControllerTest {
        
        notification.setNotificationUsers(users);
        notificationRepository.save(notification);
-/*
+
        this.mockMvc.perform(get("/notifications/user/gozer"))
 	       .andExpect(status().isOk())
 	       .andExpect(jsonPath("$", hasSize(1)))
@@ -230,11 +230,7 @@ public class NotificationControllerTest {
 	       .andExpect(jsonPath("$[0].notificationUsers", hasSize(0))) 
 	       //.andExpect(jsonPath("$[0].notificationUsers[0].user.uun", is("gozer"))
                ;
-*/
        
-       this.mockMvc.perform(get("/notifications/user/gozer"))
-	       .andExpect(status().isOk())
-	       .andExpect(jsonPath("$", hasSize(1)));       
    }
    
    
