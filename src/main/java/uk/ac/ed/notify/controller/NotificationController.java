@@ -144,11 +144,11 @@ public class NotificationController {
                 List<Notification> notifications = notificationRepository.findByUun(uun);
                 
                 //WEB010-6 Notification API get user notifications
-//                for(int i = 0; i < notifications.size(); i++){
-//                    Notification notification  = notifications.get(i);
-//                    List<NotificationUser> users = new ArrayList<NotificationUser>();
-//                    notification.setNotificationUsers(users);
-//                }
+                for(int i = 0; i < notifications.size(); i++){
+                    Notification notification  = notifications.get(i);
+                    List<NotificationUser> users = new ArrayList<NotificationUser>();
+                    notification.setNotificationUsers(users);
+                }
                 
     		return notifications;
     	}
