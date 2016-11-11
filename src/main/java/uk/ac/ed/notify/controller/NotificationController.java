@@ -144,11 +144,11 @@ public class NotificationController {
                 List<Notification> notifications = notificationRepository.findByUun(uun);
                 
                 //WEB010-6 Notification API get user notifications
-                for(int i = 0; i < notifications.size(); i++){
-                    Notification notification  = notifications.get(i);
-                    List<NotificationUser> users = new ArrayList<NotificationUser>();
-                    notification.setNotificationUsers(users);
-                }
+//                for(int i = 0; i < notifications.size(); i++){
+//                    Notification notification  = notifications.get(i);
+//                    List<NotificationUser> users = new ArrayList<NotificationUser>();
+//                    notification.setNotificationUsers(users);
+//                }
                 
     		return notifications;
     	}
@@ -179,19 +179,28 @@ public class NotificationController {
     		throw new ServletException("Must add users for non broadcast notifications");
     	}
         		
-        try { 		
+        try { 	
+            
+logger.error("###1. setNotification - " + notification);
+            
         	notification.setNotificationId(null);
         		
         	List<NotificationUser> users = notification.getNotificationUsers();
+logger.error("###2. users - " + users.size());                 
         	if (!users.isEmpty()) {
         		for (int i = 0; i < users.size(); i++) {
         			users.get(i).setNotification(notification);
+                                
         		}
         		notification.setNotificationUsers(users);
         	}
         		
+logger.error("###3. before save");                 
+                
         	notificationRepository.save(notification);
         	
+logger.error("###4. after save, before audit");                           
+                
             UserNotificationAudit userNotificationAudit = new UserNotificationAudit();
             userNotificationAudit.setAction(AuditActions.CREATE_NOTIFICATION);
             userNotificationAudit.setAuditDate(new Date());
@@ -199,6 +208,9 @@ public class NotificationController {
             userNotificationAudit.setNotificationId(notification.getNotificationId());
             userNotificationAudit.setAuditDescription(new ObjectMapper().writeValueAsString(notification));
             userNotificationAuditRepository.save(userNotificationAudit);
+            
+logger.error("###5. after audit");     
+
             return notification;
         }
         catch (Exception e)
