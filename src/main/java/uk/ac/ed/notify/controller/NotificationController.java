@@ -307,8 +307,12 @@ public class NotificationController {
         {   
         	Notification notification = notificationRepository.findOne(notificationId);
         	if (notification != null) {
-        		
-        	notificationRepository.delete(notificationId);
+        	
+                //https://www.jira.is.ed.ac.uk/browse/WEB010-9 - Notification Deletion, end date a notification rather than delete it
+        	//notificationRepository.delete(notificationId);
+                    
+                notification.setEndDate(new Date());
+                notificationRepository.save(notification);
                 
                 UserNotificationAudit userNotificationAudit = new UserNotificationAudit();
                 userNotificationAudit.setAction(AuditActions.DELETE_NOTIFICATION);

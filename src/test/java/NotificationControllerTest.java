@@ -629,10 +629,11 @@ public class NotificationControllerTest {
        			.andExpect(status().isOk());
        
        Notification savedNotification = notificationRepository.findOne(notificationId);
-       assertThat(savedNotification, is(nullValue()));
+       Date now = new Date();
+       assertThat(true, is(now.after(savedNotification.getEndDate())));
        
        List<NotificationUser> notificationUsers = notificationUserRepository.findByIdNotificationId(notificationId);
-       assertThat(notificationUsers, is(empty()));
+       assertThat(true, is(2 == notificationUsers.size()));
    }
    
    @Test
