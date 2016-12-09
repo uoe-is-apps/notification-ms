@@ -178,10 +178,19 @@ public class NotificationController {
         OAuth2Authentication authentication = null;
         try {
             authentication = (OAuth2Authentication)((SecurityContextImpl)httpServletRequest.getSession().getAttribute(("SPRING_SECURITY_CONTEXT"))).getAuthentication();   
-    	} catch (Exception e) {}
+    	} catch (Exception e) {
+
+            System.out.println(e);
+
+        }
         
     	if (authentication !=null && authentication.getOAuth2Request().getClientId().equals("notification-api-ui")) {
+
+            System.out.println("Generating auto value");
             notification.setNotificationId("12345-auto");
+            System.out.println("Calling subscriptionService.notifySubscribers");
+            subscriptionService.notifySubscribers(notification);
+            System.out.println("returning");
             return notification;
         }
     	if (!notification.getTopic().equals("Emergency") && notification.getNotificationUsers().isEmpty()) {
@@ -209,7 +218,8 @@ public class NotificationController {
             userNotificationAudit.setNotificationId(notification.getNotificationId());
             userNotificationAudit.setAuditDescription(new ObjectMapper().writeValueAsString(notification));
             userNotificationAuditRepository.save(userNotificationAudit);
-            
+
+            subscriptionService.notifySubscribers(notification);
 
             return notification;
         }

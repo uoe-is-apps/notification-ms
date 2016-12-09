@@ -18,6 +18,8 @@ import java.util.Base64;
  */
 public class SubscriptionMessage {
 
+    private boolean useGCM;
+
     private String uun;
 
     private String endPoint;
@@ -25,6 +27,29 @@ public class SubscriptionMessage {
     private String key;
 
     private String auth;
+
+    private String gcmApiKey;
+
+    private SubscriptionMessage()
+    {
+        useGCM=false;
+    }
+
+    public String getGcmApiKey() {
+        return gcmApiKey;
+    }
+
+    public void setGcmApiKey(String gcmApiKey) {
+        this.gcmApiKey = gcmApiKey;
+    }
+
+    public boolean isUseGCM() {
+        return useGCM;
+    }
+
+    public void setUseGCM(boolean useGCM) {
+        this.useGCM = useGCM;
+    }
 
     public String getEndPoint() {
         return endPoint;
