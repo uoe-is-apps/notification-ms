@@ -24,4 +24,6 @@ public interface NotificationRepository extends CrudRepository<Notification,Stri
 
     List<Notification> findByPublisherIdAndDate(String publisherId, Date date);
 
+    List<Notification> findByPublisherIdTopicAndDate(String publisherId, String topic, Date date);
+
 }

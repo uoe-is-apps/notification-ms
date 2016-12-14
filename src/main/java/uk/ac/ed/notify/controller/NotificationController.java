@@ -487,7 +487,7 @@ public class NotificationController {
             category = new NotificationCategory();
             category.setTitle("Emergency");
             entries = new ArrayList<NotificationEntry>();
-            notificationList = notificationRepository.findByPublisherIdAndDate("notify-ui", dateNow);
+            notificationList = notificationRepository.findByPublisherIdTopicAndDate("notify-ui","Emergency" ,dateNow);
             for (Notification notification : notificationList) {
                 entry = new NotificationEntry();
                 entry.setBody(notification.getBody());

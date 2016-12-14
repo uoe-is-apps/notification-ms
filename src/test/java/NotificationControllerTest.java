@@ -662,6 +662,18 @@ public class NotificationControllerTest {
        notification.setEndDate(dateFuture);
        notification.setLastUpdated(new Date());
        notificationRepository.save(notification);
+
+       notification = new Notification();
+       notification.setBody("<p>Group Notification</p>");
+       notification.setTopic("Group");
+       notification.setPublisherId("notify-ui");
+       notification.setPublisherNotificationId("11");
+       notification.setTitle("Group 1");
+       notification.setUrl("http://www.google.co.uk");
+       notification.setStartDate(date);
+       notification.setEndDate(dateFuture);
+       notification.setLastUpdated(new Date());
+       notificationRepository.save(notification);
        
        this.mockMvc.perform(get("/emergencynotifications"))
        		.andExpect(status().isOk())

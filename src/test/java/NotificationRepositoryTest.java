@@ -544,4 +544,52 @@ public class NotificationRepositoryTest {
         assertThat(notificationList.get(0).getNotificationId(), is(notificationId));
         assertThat(notificationList.get(0).getTitle(), is("Notify Announcement Future OK"));
     }
+
+    @Test
+    public void testGetNotificationByPublisherTopicAndDate()
+    {
+        Notification notification = new Notification();
+        notification.setBody("<p>Regular Notification</p>");
+        notification.setTopic("Emergency");
+        notification.setPublisherId("yes-publisher");
+        notification.setPublisherNotificationId("13");
+        notification.setTitle("Notify Announcement Future OK");
+        notification.setUrl("http://www.google.co.uk");
+        notification.setStartDate(date);
+        notification.setEndDate(dateFuture);
+
+        notificationRepository.save(notification);
+
+        String notificationId = notification.getNotificationId();
+        assertThat(notificationId, is(notNullValue()));
+
+        notification = new Notification();
+        notification.setBody("<p>Regular Notification 2</p>");
+        notification.setTopic("Emergency");
+        notification.setPublisherId("yes-publisher");
+        notification.setPublisherNotificationId("14");
+        notification.setTitle("Notify Announcement Past NOT OK");
+        notification.setUrl("http://www.google.co.uk");
+        notification.setStartDate(date);
+        notification.setEndDate(date);
+
+        notificationRepository.save(notification);
+
+        notification = new Notification();
+        notification.setBody("<p>Regular Notification</p>");
+        notification.setTopic("Group");
+        notification.setPublisherId("yes-publisher");
+        notification.setPublisherNotificationId("13");
+        notification.setTitle("Notify Announcement Future OK");
+        notification.setUrl("http://www.google.co.uk");
+        notification.setStartDate(date);
+        notification.setEndDate(dateFuture);
+
+        notificationRepository.save(notification);
+
+        List<Notification> notificationList = notificationRepository.findByPublisherIdTopicAndDate("yes-publisher", "Emergency",new Date());
+        assertThat(notificationList, hasSize(1));
+        assertThat(notificationList.get(0).getNotificationId(), is(notificationId));
+        assertThat(notificationList.get(0).getTitle(), is("Notify Announcement Future OK"));
+    }
 }
