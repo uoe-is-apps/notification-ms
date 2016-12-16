@@ -18,6 +18,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
 import uk.ac.ed.notify.entity.*;
@@ -233,7 +235,7 @@ public class NotificationControllerTest {
        
    }
    
-   
+   @Transactional
    @Test
    public void testCreateEmergencyNotification() throws Exception {
 	   
@@ -262,12 +264,13 @@ public class NotificationControllerTest {
        
        notification = mapper.readValue(response, Notification.class);
        
-       Notification savedInstance = notificationRepository.findOne(notification.getNotificationId());
+       Notification savedInstance = getNotification(notification.getNotificationId());
        assertThat(savedInstance, is(notNullValue()));
        assertThat(savedInstance.getNotificationId(), is(notification.getNotificationId()));
        assertThat(savedInstance.getNotificationUsers(), hasSize(0));
    }
-   
+
+   @Transactional
    @Test
    public void testCreateRegularNotification() throws Exception {
 
@@ -302,10 +305,16 @@ public class NotificationControllerTest {
        
        notification = mapper.readValue(response, Notification.class);
        
-       Notification savedInstance = notificationRepository.findOne(notification.getNotificationId());
+       Notification savedInstance = getNotification(notification.getNotificationId());
        assertThat(savedInstance, is(notNullValue()));
        assertThat(savedInstance.getNotificationUsers(), hasSize(1));
        assertThat(savedInstance.getNotificationUsers().get(0).getId().getUun(), is("donald"));
+   }
+
+   @Transactional(propagation = Propagation.REQUIRES_NEW)
+   public Notification getNotification(String notificationId)
+   {
+       return notificationRepository.findOne(notificationId);
    }
    
    @Test(expected=ServletException.class)
@@ -395,7 +404,8 @@ public class NotificationControllerTest {
        Notification savedNotification = notificationRepository.findOne(notificationId);
        assertThat(savedNotification.getTitle(), is("Updated announcement"));
    }
-   
+
+   @Transactional
    @Test
    public void testUpdateRegularNotificationAddUser() throws Exception {
 	   
@@ -435,7 +445,7 @@ public class NotificationControllerTest {
     		   .contentType(MediaType.APPLICATION_JSON))
     		   .andExpect(status().isOk());
        
-       Notification savedNotification = notificationRepository.findOne(notificationId);
+       Notification savedNotification = getNotification(notificationId);
        assertThat(savedNotification.getNotificationUsers(), hasSize(2));
        
        List<String> userNames = new ArrayList<String>(2);
@@ -444,7 +454,8 @@ public class NotificationControllerTest {
        
        assertThat(userNames, hasItems("donald","gozer")); 
    }
-   
+
+   @Transactional
    @Test
    public void testUpdateRegularNotificationRemoveUser() throws Exception {
 	   
@@ -472,7 +483,7 @@ public class NotificationControllerTest {
        users.add(user);
        
        notification.setNotificationUsers(users);
-       notificationRepository.save(notification);
+       saveNotification(notification);
        
        String notificationId = notification.getNotificationId();
        assertThat(notificationId, is(notNullValue()));
@@ -487,11 +498,12 @@ public class NotificationControllerTest {
     		   .contentType(MediaType.APPLICATION_JSON))
     		   .andExpect(status().isOk());
        
-       Notification savedNotification = notificationRepository.findOne(notificationId);
+       Notification savedNotification = getNotification(notificationId);
        assertThat(savedNotification.getNotificationUsers(), hasSize(1));
        assertThat(savedNotification.getNotificationUsers().get(0).getId().getUun(), is("donald"));
    }
-   
+
+
    @Test(expected = ServletException.class)
    public void testUpdateNotificationMismatchedNotificationId() throws Exception
    {
@@ -513,7 +525,7 @@ public class NotificationControllerTest {
        users.add(user);
        
        notification.setNotificationUsers(users);
-       notificationRepository.save(notification);
+       saveNotification(notification);
        
        String notificationId = notification.getNotificationId();
        assertThat(notificationId, is(notNullValue()));
@@ -525,6 +537,12 @@ public class NotificationControllerTest {
        this.mockMvc.perform(put("/notification/12")
                .content(jsonString)
                .contentType(MediaType.APPLICATION_JSON));
+   }
+
+   @Transactional(propagation = Propagation.REQUIRES_NEW)
+   public void saveNotification(Notification notification)
+   {
+       notificationRepository.save(notification);
    }
    
    @Test(expected = ServletException.class)
@@ -548,7 +566,7 @@ public class NotificationControllerTest {
        users.add(user);
        
        notification.setNotificationUsers(users);
-       notificationRepository.save(notification);
+       saveNotification(notification);
        
        String notificationId = notification.getNotificationId();
        assertThat(notificationId, is(notNullValue()));
