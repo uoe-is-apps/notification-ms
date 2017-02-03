@@ -494,6 +494,7 @@ public class NotificationController {
                 entry = new NotificationEntry();
                 entry.setBody(notification.getBody());
                 entry.setTitle(notification.getTitle());
+                entry.setStartDate(notification.getStartDate());
                 entry.setDueDate(notification.getEndDate());
                 entry.setUrl(notification.getUrl());
                 entries.add(entry);
