@@ -72,7 +72,7 @@ public class Notification {
         @Temporal(TemporalType.TIMESTAMP)
         private Date lastUpdated;
 
-        @OneToMany(fetch = FetchType.EAGER, mappedBy = "notification", cascade = CascadeType.ALL, orphanRemoval = true)
+        @OneToMany(fetch = FetchType.LAZY, mappedBy = "notification", cascade = CascadeType.ALL, orphanRemoval = true)
         private List<NotificationUser> notificationUsers = new ArrayList<NotificationUser>();
         
         @Column(name="NOTIFICATION_GROUP")

@@ -150,7 +150,9 @@ public class NotificationController {
                     notification.setNotificationUsers(users);
                 }
                 
-    		return notifications;
+                //WEB010-44 Notifications should first be sorted by due date and then start date 
+                //(if due date is not available or if they have the same due date
+    		return getSortedNotification(notifications);
     	}
     	catch (Exception e)
         {
@@ -492,6 +494,7 @@ public class NotificationController {
                 entry = new NotificationEntry();
                 entry.setBody(notification.getBody());
                 entry.setTitle(notification.getTitle());
+                entry.setStartDate(notification.getStartDate());
                 entry.setDueDate(notification.getEndDate());
                 entry.setUrl(notification.getUrl());
                 entries.add(entry);
@@ -516,4 +519,40 @@ public class NotificationController {
 
         return notificationResponse;
     } 
+    
+    private List<Notification> getSortedNotification(List<Notification> notificationUnsorted){
+       List<Notification> notificationsWithEndDate = new ArrayList<Notification>();
+       List<Notification> notificationsWithoutEndDate = new ArrayList<Notification>();
+       
+       for(int i = 0; i < notificationUnsorted.size(); i++){
+           if(notificationUnsorted.get(i).getEndDate() != null){
+               notificationsWithEndDate.add(notificationUnsorted.get(i));
+           }else{
+               notificationsWithoutEndDate.add(notificationUnsorted.get(i));
+           }
+       }
+       
+       Collections.sort(notificationsWithEndDate, new java.util.Comparator<Notification>() {
+           @Override
+           public int compare(Notification notification1, Notification notification2)
+           {
+               return  notification1.getEndDate().compareTo(notification2.getEndDate());
+           }
+       });
+       
+       Collections.sort(notificationsWithoutEndDate, new java.util.Comparator<Notification>() {
+           @Override
+           public int compare(Notification notification1, Notification notification2)
+           {
+               return  notification1.getStartDate().compareTo(notification2.getStartDate());
+           }
+       });       
+       
+       List<Notification> notificationsSorted = new ArrayList<Notification>();
+       notificationsSorted.addAll(notificationsWithEndDate);
+       notificationsSorted.addAll(notificationsWithoutEndDate);
+       
+       return notificationsSorted;
+    }
+    
 }

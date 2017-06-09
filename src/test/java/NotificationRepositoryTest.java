@@ -1,3 +1,4 @@
+import org.hibernate.Hibernate;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -6,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ed.notify.entity.Notification;
 import uk.ac.ed.notify.entity.NotificationUser;
 import uk.ac.ed.notify.entity.NotificationUserPK;
@@ -90,6 +92,7 @@ public class NotificationRepositoryTest {
         notificationRepository.save(notification);
     }
 
+    @Transactional
     @Test
     public void testGetEmergencyNotification() {
     	
@@ -117,7 +120,7 @@ public class NotificationRepositoryTest {
         assertThat(notification.getNotificationUsers(), hasSize(0));
     }
     
-    
+    @Transactional
     @Test
     public void testGetRegularNotification()
     {
@@ -337,7 +340,8 @@ public class NotificationRepositoryTest {
         assertThat(users.get(0).getId().getUun(), is(not("bolek")));
         assertThat(users.get(1).getId().getUun(), is(not("bolek")));
     }
-    
+
+    @Transactional
     @Test
     public void testGetNotificationByUun() {
     	
@@ -386,6 +390,7 @@ public class NotificationRepositoryTest {
         assertThat(notificationList, is(notNullValue()));
         assertThat(notificationList, hasSize(1));
         assertThat(notificationList.get(0).getNotificationId(), is(yesNotificationId));
+        Hibernate.initialize(notificationList.get(0).getNotificationUsers());
         assertThat(notificationList.get(0).getNotificationUsers(), hasSize(1));
         assertThat(notificationList.get(0).getNotificationUsers().get(0).getId().getUun(), is("yes-user"));
     }  
