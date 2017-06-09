@@ -2,6 +2,8 @@ package uk.ac.ed.notify.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.annotations.*;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.security.core.context.SecurityContextImpl;
 import java.util.List;
 import java.text.SimpleDateFormat;
@@ -18,6 +20,8 @@ import uk.ac.ed.notify.NotificationResponse;
 import uk.ac.ed.notify.NotificationStubResponse;
 import uk.ac.ed.notify.entity.*;
 import uk.ac.ed.notify.repository.*;
+import uk.ac.ed.notify.service.SubscriptionService;
+
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -51,6 +55,9 @@ public class NotificationController {
 
     @Autowired
     NotificationErrorRepository notificationErrorRepository;
+
+    @Autowired
+    SubscriptionService subscriptionService;
 
     @ApiOperation(value="Get a specific notification",notes="Requires notification id to look up", response = Notification.class,
     authorizations = {@Authorization(value="oauth2",scopes = {@AuthorizationScope(scope="notifications.read",description = "Read access to notification API")})})    
@@ -161,7 +168,9 @@ public class NotificationController {
         }
     	
     }
-    
+
+   // @MessageMapping("/notification")
+    @SendTo("/topic/notifications")
     @ApiOperation(value="Create a new notification",notes="Requires a valid notification object. For creation DO NOT specify notificationId, one will be automatically generated.",response = Notification.class,
             authorizations = {@Authorization(value="oauth2",scopes = {@AuthorizationScope(scope="notifications.write",description = "Write access to notification API")})})
     @ApiResponses({@ApiResponse(code=404,message="Not found")})
@@ -171,10 +180,19 @@ public class NotificationController {
         OAuth2Authentication authentication = null;
         try {
             authentication = (OAuth2Authentication)((SecurityContextImpl)httpServletRequest.getSession().getAttribute(("SPRING_SECURITY_CONTEXT"))).getAuthentication();   
-    	} catch (Exception e) {}
+    	} catch (Exception e) {
+
+            System.out.println(e);
+
+        }
         
     	if (authentication !=null && authentication.getOAuth2Request().getClientId().equals("notification-api-ui")) {
+
+            System.out.println("Generating auto value");
             notification.setNotificationId("12345-auto");
+            System.out.println("Calling subscriptionService.notifySubscribers");
+            subscriptionService.notifySubscribers(notification);
+            System.out.println("returning");
             return notification;
         }
     	if (!notification.getTopic().equals("Emergency") && notification.getNotificationUsers().isEmpty()) {
@@ -202,7 +220,8 @@ public class NotificationController {
             userNotificationAudit.setNotificationId(notification.getNotificationId());
             userNotificationAudit.setAuditDescription(new ObjectMapper().writeValueAsString(notification));
             userNotificationAuditRepository.save(userNotificationAudit);
-            
+
+            subscriptionService.notifySubscribers(notification);
 
             return notification;
         }

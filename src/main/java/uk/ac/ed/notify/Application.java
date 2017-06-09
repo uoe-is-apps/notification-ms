@@ -9,9 +9,9 @@ import org.springframework.boot.context.embedded.EmbeddedServletContainerFactory
 import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory;
 import org.springframework.boot.context.web.SpringBootServletInitializer;
 import org.springframework.boot.orm.jpa.EntityScan;
-import org.springframework.cloud.security.oauth2.resource.EnableOAuth2Resource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
 
 /**
  * Created by rgood on 18/09/2015.
@@ -20,7 +20,7 @@ import org.springframework.context.annotation.ComponentScan;
 @ComponentScan({"uk.ac.ed.notify"})
 @EntityScan("uk.ac.ed.notify.entity")
 @SpringBootApplication
-@EnableOAuth2Resource
+@EnableResourceServer
 public class Application extends SpringBootServletInitializer {
 
     @Value("${tomcat.ajp.port}")
