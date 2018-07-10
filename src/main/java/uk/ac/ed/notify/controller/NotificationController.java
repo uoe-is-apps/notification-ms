@@ -33,6 +33,8 @@ import java.util.*;
 @RestController
 public class NotificationController {
 
+    private static final String CORS_PATTERN = "(.+\\.)*ed\\.ac\\.uk";
+
     private static final Logger logger = LoggerFactory.getLogger(NotificationController.class);
 
     @Value("${cache.expiry}")
@@ -64,7 +66,8 @@ public class NotificationController {
     @ApiResponses({@ApiResponse(code=404,message="Not found")})
     @RequestMapping(value="/notification/{notification-id}",method= RequestMethod.GET)
     public Notification getNotification(@PathVariable("notification-id") String notificationId, HttpServletResponse httpServletResponse, HttpServletRequest httpServletRequest) throws ServletException {
-
+        CorsMatcher.setAccessControlAllowOrigin(httpServletRequest, httpServletResponse, CORS_PATTERN);
+        
         OAuth2Authentication authentication = null;
         try {
             authentication = (OAuth2Authentication)((SecurityContextImpl)httpServletRequest.getSession().getAttribute(("SPRING_SECURITY_CONTEXT"))).getAuthentication();   
@@ -94,7 +97,8 @@ public class NotificationController {
     @ApiResponses({@ApiResponse(code=404,message="Not found")})
     @RequestMapping(value="/notifications/publisher/{publisher-id}",method = RequestMethod.GET)
     public List<Notification> getPublisherNotifications(@PathVariable("publisher-id") String publisherId, HttpServletResponse httpServletResponse, HttpServletRequest httpServletRequest) throws ServletException {
-
+        CorsMatcher.setAccessControlAllowOrigin(httpServletRequest, httpServletResponse, CORS_PATTERN);
+        
         OAuth2Authentication authentication = null;
         try {
             authentication = (OAuth2Authentication)((SecurityContextImpl)httpServletRequest.getSession().getAttribute(("SPRING_SECURITY_CONTEXT"))).getAuthentication();   
@@ -131,6 +135,7 @@ public class NotificationController {
     @ApiResponses({@ApiResponse(code=404,message="Not found")})
     @RequestMapping(value="/notifications/user/{uun}", method= RequestMethod.GET) 
     public List<Notification> getUserNotifications(@PathVariable("uun") String uun, HttpServletResponse httpServletResponse, HttpServletRequest httpServletRequest) throws ServletException {
+        CorsMatcher.setAccessControlAllowOrigin(httpServletRequest, httpServletResponse, CORS_PATTERN);
         
         OAuth2Authentication authentication = null;
         try {
@@ -175,7 +180,8 @@ public class NotificationController {
             authorizations = {@Authorization(value="oauth2",scopes = {@AuthorizationScope(scope="notifications.write",description = "Write access to notification API")})})
     @ApiResponses({@ApiResponse(code=404,message="Not found")})
     @RequestMapping(value="/notification/", method=RequestMethod.POST) 
-    public Notification setNotification(@RequestBody Notification notification, HttpServletRequest httpServletRequest) throws ServletException {
+    public Notification setNotification(@RequestBody Notification notification, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws ServletException {
+        CorsMatcher.setAccessControlAllowOrigin(httpServletRequest, httpServletResponse, CORS_PATTERN);
         
         OAuth2Authentication authentication = null;
         try {
@@ -241,7 +247,8 @@ public class NotificationController {
             authorizations = {@Authorization(value="oauth2",scopes = {@AuthorizationScope(scope="notifications.write",description = "Write access to notification API")})})
     @ApiResponses({@ApiResponse(code=404,message="Not found")})
     @RequestMapping(value="/notification/{notification-id}",method=RequestMethod.PUT)
-    public void updateNotification(@PathVariable("notification-id") String notificationId, @RequestBody Notification notification, HttpServletRequest httpServletRequest) throws ServletException {      
+    public void updateNotification(@PathVariable("notification-id") String notificationId, @RequestBody Notification notification, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws ServletException {      
+        CorsMatcher.setAccessControlAllowOrigin(httpServletRequest, httpServletResponse, CORS_PATTERN);
         
         OAuth2Authentication authentication = null;
         try {
@@ -312,7 +319,8 @@ public class NotificationController {
             authorizations = {@Authorization(value="oauth2",scopes = {@AuthorizationScope(scope="notifications.write",description = "Write access to notification API")})})
     @ApiResponses({@ApiResponse(code=404,message="Not found")})
     @RequestMapping(value="/notification/{notification-id}",method=RequestMethod.DELETE)
-    public void deleteNotification(@PathVariable("notification-id") String notificationId, HttpServletRequest httpServletRequest) throws ServletException {     
+    public void deleteNotification(@PathVariable("notification-id") String notificationId, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws ServletException {     
+        CorsMatcher.setAccessControlAllowOrigin(httpServletRequest, httpServletResponse, CORS_PATTERN);
         
         OAuth2Authentication authentication = null;
         try {
@@ -365,6 +373,7 @@ public class NotificationController {
     @ApiResponses({@ApiResponse(code=404,message="Not found")})
     @RequestMapping(value="/usernotifications/{subscriber-id}",method= RequestMethod.GET)
     public NotificationResponse getUserNotificationsBySubscription(@PathVariable("subscriber-id") String subscriberId, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
+        CorsMatcher.setAccessControlAllowOrigin(httpServletRequest, httpServletResponse, CORS_PATTERN);
         
         OAuth2Authentication authentication = null;
         try {
@@ -477,6 +486,7 @@ public class NotificationController {
     @ApiResponses({@ApiResponse(code=404,message="Not found")})
     @RequestMapping(value="/emergencynotifications",method= RequestMethod.GET)//OAuth2Authentication authentication, 
     public NotificationResponse getEmergencyNotifications(HttpServletResponse httpServletResponse, HttpServletRequest httpServletRequest) {
+        CorsMatcher.setAccessControlAllowOrigin(httpServletRequest, httpServletResponse, CORS_PATTERN);
         
         OAuth2Authentication authentication = null;
         try {
