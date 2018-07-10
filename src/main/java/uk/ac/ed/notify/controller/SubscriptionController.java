@@ -18,13 +18,16 @@ import java.util.List;
 @RestController
 public class SubscriptionController {
 
+    private static final String CORS_PATTERN = "(.+\\.)*ed\\.ac\\.uk";
+
 
     @Autowired
     SubscriptionService subscriptionService;
 
     @RequestMapping(value="/push-subscription",method = RequestMethod.POST)
-    public void addSubscription(@RequestBody SubscriptionMessage subscriptionMessage,HttpServletResponse httpServletResponse, HttpServletRequest httpServletRequest) throws ServletException {
-        System.out.println("Add subscription called");
+    public void addSubscription(@RequestBody SubscriptionMessage subscriptionMessage, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws ServletException {
+        CorsMatcher.setAccessControlAllowOrigin(httpServletRequest, httpServletResponse, CORS_PATTERN);
+        
         //TODO Ensure the principal matches the user in the subscription message
 
         subscriptionService.addSubscriber(subscriptionMessage);
