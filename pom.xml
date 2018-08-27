@@ -20,9 +20,26 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
+
+        <!-- Version numbers of database driver jars -->
+        <hsqldb.version>2.4.1</hsqldb.version>
+        <ojdbc6.version>11.2.0.3</ojdbc6.version>
     </properties>
 
     <dependencies>
+        <!--
+         | Database Driver Jars
+         |
+         | You must include the proper JDBC driver dependency and version number for your RDBMS
+         | platform.  Removing unused driver jars is not necessary;  they do no harm.
+         +-->
+        <dependency>
+            <groupId>org.hsqldb</groupId>
+            <artifactId>hsqldb</artifactId>
+            <version>${hsqldb.version}</version>
+        </dependency>
+
+        <!-- core dependencies -->
         <dependency>
             <groupId>org.jasig.portlet.notification</groupId>
             <artifactId>notification-portlet-api</artifactId>
@@ -44,6 +61,7 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
+        <!-- end core dependencies -->
         <!-- web socket push dependencies -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -101,11 +119,6 @@
             <version>1.8.3</version>
         </dependency>
         <dependency>
-            <groupId>com.oracle</groupId>
-            <artifactId>ojdbc6</artifactId>
-            <version>11.2.0.3</version>
-        </dependency>
-        <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
             <scope>test</scope>
@@ -130,6 +143,7 @@
         </plugins>
     </build>
 
+<!--
     <repositories>
 <repository>
   <url>https://nexus.is.ed.ac.uk/repository/public/</url>
@@ -138,6 +152,7 @@
   <name>Maven 2 repository</name>        
 </repository>
     </repositories>
+-->
 
     <profiles>
         <profile>
@@ -172,6 +187,24 @@
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-starter-tomcat</artifactId>
                     <scope>provided</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>oracle</id>
+            <dependencies>
+                <!--
+                 | Oracle Driver Jar
+                 |
+                 | Oracle corp. will neither make their driver jar available in Maven Central nor
+                 | permit redistribution.  To include the Oracle jar in the deployment, you must
+                 | (1) install the jar in a maven repo the build is willing to use and (2) invoke
+                 | the build with '-Poracle'
+                 +-->
+                <dependency>
+                    <groupId>com.oracle</groupId>
+                    <artifactId>ojdbc6</artifactId>
+                    <version>${ojdbc6.version}</version>
                 </dependency>
             </dependencies>
         </profile>
