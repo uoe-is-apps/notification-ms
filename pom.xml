@@ -143,17 +143,6 @@
         </plugins>
     </build>
 
-<!--
-    <repositories>
-<repository>
-  <url>https://nexus.is.ed.ac.uk/repository/public/</url>
-  <id>nexus.is.ed.ac.uk</id>
-  <layout>default</layout>
-  <name>Maven 2 repository</name>        
-</repository>
-    </repositories>
--->
-
     <profiles>
         <profile>
             <id>jar</id>
