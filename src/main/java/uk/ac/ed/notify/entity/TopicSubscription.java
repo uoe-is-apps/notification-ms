@@ -10,7 +10,7 @@ import java.util.Date;
  * Created by rgood on 20/10/2015.
  */
 @Entity
-@Table(name="TOPIC_SUBSCRIPTIONS",schema = "NOTIFY")
+@Table(name="TOPIC_SUBSCRIPTIONS")
 @NamedQueries({
         @NamedQuery(name = "TopicSubscription.findBySubscriberId", query = "SELECT a FROM TopicSubscription a WHERE a.subscriberId = (?1)")
 })

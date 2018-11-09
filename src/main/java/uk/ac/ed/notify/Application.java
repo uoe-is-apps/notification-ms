@@ -11,16 +11,13 @@ import org.springframework.boot.context.web.SpringBootServletInitializer;
 import org.springframework.boot.orm.jpa.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
 
 /**
  * Created by rgood on 18/09/2015.
  */
-//@Configuration
 @ComponentScan({"uk.ac.ed.notify"})
 @EntityScan("uk.ac.ed.notify.entity")
 @SpringBootApplication
-@EnableResourceServer
 public class Application extends SpringBootServletInitializer {
 
     @Value("${tomcat.ajp.port}")

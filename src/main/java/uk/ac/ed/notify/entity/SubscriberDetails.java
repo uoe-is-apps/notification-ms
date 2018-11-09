@@ -9,7 +9,7 @@ import java.util.Date;
  * Created by rgood on 20/10/2015.
  */
 @Entity
-@Table(name="SUBSCRIBER_DETAILS", schema = "NOTIFY")
+@Table(name="SUBSCRIBER_DETAILS")
 public class SubscriberDetails {
 
     //TODO Add status value validation

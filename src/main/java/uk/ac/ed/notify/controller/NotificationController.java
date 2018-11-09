@@ -2,22 +2,22 @@ package uk.ac.ed.notify.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.annotations.*;
-import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
-import org.springframework.security.core.context.SecurityContextImpl;
+import org.springframework.security.core.Authentication;
 import java.util.List;
 import java.text.SimpleDateFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.oauth2.provider.OAuth2Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import uk.ac.ed.notify.NotificationCategory;
 import uk.ac.ed.notify.NotificationEntry;
 import uk.ac.ed.notify.NotificationError;
 import uk.ac.ed.notify.NotificationResponse;
 import uk.ac.ed.notify.NotificationStubResponse;
+import uk.ac.ed.notify.SecurityConfiguration;
 import uk.ac.ed.notify.entity.*;
 import uk.ac.ed.notify.repository.*;
 import uk.ac.ed.notify.service.SubscriptionService;
@@ -61,17 +61,17 @@ public class NotificationController {
     @Autowired
     SubscriptionService subscriptionService;
 
+    /*
+     * TODO:  Convert Swagger configuration (@ApiOperation) to use Basic AuthN.
+     */
+
     @ApiOperation(value="Get a specific notification",notes="Requires notification id to look up", response = Notification.class,
     authorizations = {@Authorization(value="oauth2",scopes = {@AuthorizationScope(scope="notifications.read",description = "Read access to notification API")})})    
     @ApiResponses({@ApiResponse(code=404,message="Not found")})
     @RequestMapping(value="/notification/{notification-id}",method= RequestMethod.GET)
     public Notification getNotification(@PathVariable("notification-id") String notificationId, HttpServletResponse httpServletResponse, HttpServletRequest httpServletRequest) throws ServletException {
+
         CorsMatcher.setAccessControlAllowOrigin(httpServletRequest, httpServletResponse, CORS_PATTERN);
-        
-        OAuth2Authentication authentication = null;
-        try {
-            authentication = (OAuth2Authentication)((SecurityContextImpl)httpServletRequest.getSession().getAttribute(("SPRING_SECURITY_CONTEXT"))).getAuthentication();   
-    	} catch (Exception e) {}
         
         long expires = (new Date()).getTime()+cacheExpiry;
 
@@ -79,7 +79,7 @@ public class NotificationController {
         httpServletResponse.setDateHeader("Expires", expires);
 
         try{
-        	if (authentication != null && authentication.getOAuth2Request().getClientId().equals("notification-api-ui"))
+        	if (isNotificationApiUi())
                 {
                 return NotificationStubResponse.getSingleNotification();
                 }
@@ -97,19 +97,15 @@ public class NotificationController {
     @ApiResponses({@ApiResponse(code=404,message="Not found")})
     @RequestMapping(value="/notifications/publisher/{publisher-id}",method = RequestMethod.GET)
     public List<Notification> getPublisherNotifications(@PathVariable("publisher-id") String publisherId, HttpServletResponse httpServletResponse, HttpServletRequest httpServletRequest) throws ServletException {
+
         CorsMatcher.setAccessControlAllowOrigin(httpServletRequest, httpServletResponse, CORS_PATTERN);
-        
-        OAuth2Authentication authentication = null;
-        try {
-            authentication = (OAuth2Authentication)((SecurityContextImpl)httpServletRequest.getSession().getAttribute(("SPRING_SECURITY_CONTEXT"))).getAuthentication();   
-    	} catch (Exception e) {}
         
         long expires = (new Date()).getTime()+cacheExpiry;
 
         httpServletResponse.setHeader("cache-control", "public, max-age=" + cacheExpiry/1000 + ", cache");
         httpServletResponse.setDateHeader("Expires", expires);
-        
-    	if (authentication!=null && authentication.getOAuth2Request().getClientId().equals("notification-api-ui"))
+
+        if (isNotificationApiUi())
         {
     		return NotificationStubResponse.getNotificationsList();
         }
@@ -135,12 +131,8 @@ public class NotificationController {
     @ApiResponses({@ApiResponse(code=404,message="Not found")})
     @RequestMapping(value="/notifications/user/{uun}", method= RequestMethod.GET) 
     public List<Notification> getUserNotifications(@PathVariable("uun") String uun, HttpServletResponse httpServletResponse, HttpServletRequest httpServletRequest) throws ServletException {
+
         CorsMatcher.setAccessControlAllowOrigin(httpServletRequest, httpServletResponse, CORS_PATTERN);
-        
-        OAuth2Authentication authentication = null;
-        try {
-            authentication = (OAuth2Authentication)((SecurityContextImpl)httpServletRequest.getSession().getAttribute(("SPRING_SECURITY_CONTEXT"))).getAuthentication();   
-    	} catch (Exception e) {}
         
     	long expires = (new Date()).getTime()+cacheExpiry;
 
@@ -148,7 +140,7 @@ public class NotificationController {
     	httpServletResponse.setDateHeader("Expires", expires);
 
     	try{
-    		if (authentication!=null && authentication.getOAuth2Request().getClientId().equals("notification-api-ui"))
+            if (isNotificationApiUi())
                 {
     			return NotificationStubResponse.getNotificationsList();
                 }
@@ -156,11 +148,10 @@ public class NotificationController {
                 List<Notification> notifications = notificationRepository.findByUun(uun);
                 
                 //WEB010-6 Notification API get user notifications
-                for(int i = 0; i < notifications.size(); i++){
-                    Notification notification  = notifications.get(i);
-                    List<NotificationUser> users = new ArrayList<NotificationUser>();
-                    notification.setNotificationUsers(users);
-                }
+            for (Notification notification : notifications) {
+                List<NotificationUser> users = new ArrayList<>();
+                notification.setNotificationUsers(users);
+            }
                 
                 //WEB010-44 Notifications should first be sorted by due date and then start date 
                 //(if due date is not available or if they have the same due date
@@ -181,18 +172,9 @@ public class NotificationController {
     @ApiResponses({@ApiResponse(code=404,message="Not found")})
     @RequestMapping(value="/notification/", method=RequestMethod.POST) 
     public Notification setNotification(@RequestBody Notification notification, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws ServletException {
+
         CorsMatcher.setAccessControlAllowOrigin(httpServletRequest, httpServletResponse, CORS_PATTERN);
-        
-        OAuth2Authentication authentication = null;
-        try {
-            authentication = (OAuth2Authentication)((SecurityContextImpl)httpServletRequest.getSession().getAttribute(("SPRING_SECURITY_CONTEXT"))).getAuthentication();   
-    	} catch (Exception e) {
-
-            System.out.println(e);
-
-        }
-        
-    	if (authentication !=null && authentication.getOAuth2Request().getClientId().equals("notification-api-ui")) {
+        if (isNotificationApiUi()) {
 
             System.out.println("Generating auto value");
             notification.setNotificationId("12345-auto");
@@ -210,10 +192,10 @@ public class NotificationController {
             notification.setNotificationId(null);        		
             List<NotificationUser> users = notification.getNotificationUsers();             
         	if (!users.isEmpty()) {
-        		for (int i = 0; i < users.size(); i++) {
-        			users.get(i).setNotification(notification);
-                                
-        		}
+                for (NotificationUser user : users) {
+                    user.setNotification(notification);
+
+                }
         		notification.setNotificationUsers(users);
         	}
         		                             
@@ -250,11 +232,7 @@ public class NotificationController {
     public void updateNotification(@PathVariable("notification-id") String notificationId, @RequestBody Notification notification, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws ServletException {      
         CorsMatcher.setAccessControlAllowOrigin(httpServletRequest, httpServletResponse, CORS_PATTERN);
         
-        OAuth2Authentication authentication = null;
-        try {
-            authentication = (OAuth2Authentication)((SecurityContextImpl)httpServletRequest.getSession().getAttribute(("SPRING_SECURITY_CONTEXT"))).getAuthentication();   
-    	} catch (Exception e) {}
-        
+
         if (!notificationId.equals(notification.getNotificationId()))
         {
             throw new ServletException("Notification ID and notification body do not match");
@@ -264,8 +242,8 @@ public class NotificationController {
         {
             throw new ServletException("Non broadcast notifications require at least one user");
         }
-        
-        if (authentication!=null && authentication.getOAuth2Request().getClientId().equals("notification-api-ui"))
+
+        if (isNotificationApiUi())
         {
             return;
         }
@@ -285,10 +263,10 @@ public class NotificationController {
         {
         	List<NotificationUser> users = notification.getNotificationUsers();
         	if (!users.isEmpty()) {
-        		for (int i = 0; i < users.size(); i++) {
-        			users.get(i).setNotification(notification);
-        			users.get(i).getId().setNotificationId(notificationId);
-        		}
+                for (NotificationUser user : users) {
+                    user.setNotification(notification);
+                    user.getId().setNotificationId(notificationId);
+                }
         		notification.setNotificationUsers(users);
         	}
 
@@ -321,13 +299,9 @@ public class NotificationController {
     @RequestMapping(value="/notification/{notification-id}",method=RequestMethod.DELETE)
     public void deleteNotification(@PathVariable("notification-id") String notificationId, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws ServletException {     
         CorsMatcher.setAccessControlAllowOrigin(httpServletRequest, httpServletResponse, CORS_PATTERN);
-        
-        OAuth2Authentication authentication = null;
-        try {
-            authentication = (OAuth2Authentication)((SecurityContextImpl)httpServletRequest.getSession().getAttribute(("SPRING_SECURITY_CONTEXT"))).getAuthentication();   
-    	} catch (Exception e) {}
-        
-    	if (authentication !=null && authentication.getOAuth2Request().getClientId().equals("notification-api-ui"))
+
+
+        if (isNotificationApiUi())
         {
             return;
         }
@@ -373,13 +347,9 @@ public class NotificationController {
     @ApiResponses({@ApiResponse(code=404,message="Not found")})
     @RequestMapping(value="/usernotifications/{subscriber-id}",method= RequestMethod.GET)
     public NotificationResponse getUserNotificationsBySubscription(@PathVariable("subscriber-id") String subscriberId, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
+
         CorsMatcher.setAccessControlAllowOrigin(httpServletRequest, httpServletResponse, CORS_PATTERN);
-        
-        OAuth2Authentication authentication = null;
-        try {
-            authentication = (OAuth2Authentication)((SecurityContextImpl)httpServletRequest.getSession().getAttribute(("SPRING_SECURITY_CONTEXT"))).getAuthentication();   
-    	} catch (Exception e) {}
-        
+
     	long expires = (new Date()).getTime()+cacheExpiry;
 
         httpServletResponse.setHeader("cache-control", "public, max-age=" + cacheExpiry/1000 + ", cache");
@@ -391,7 +361,7 @@ public class NotificationController {
 
         if (uun==null)
         {
-            List<NotificationError> errors = new ArrayList<NotificationError>();
+            List<NotificationError> errors = new ArrayList<>();
             errors.add(new NotificationError("No UUN provided", "Notification Backbone"));
             notificationResponse.setErrors(errors);
             return notificationResponse;
@@ -401,7 +371,7 @@ public class NotificationController {
 
         if (subscriberDetails==null||!subscriberDetails.getStatus().equals("A"))
         {
-            List<NotificationError> errors = new ArrayList<NotificationError>();
+            List<NotificationError> errors = new ArrayList<>();
             errors.add(new NotificationError("Invalid subscriber or subscriber inactive", "Notification Backbone"));
             notificationResponse.setErrors(errors);
             return notificationResponse;
@@ -413,7 +383,7 @@ public class NotificationController {
             Calendar cal = Calendar.getInstance();
             Date dateNow = cal.getTime();
 
-            List<NotificationCategory> categories = new ArrayList<NotificationCategory>();
+            List<NotificationCategory> categories = new ArrayList<>();
             NotificationCategory category;
             NotificationEntry entry;
             List<Notification> notificationList;
@@ -421,7 +391,7 @@ public class NotificationController {
             for (TopicSubscription topicSubscription : topicSubscriptionList) {
                 category = new NotificationCategory();
                 category.setTitle(topicSubscription.getTopic());
-                entries = new ArrayList<NotificationEntry>();
+                entries = new ArrayList<>();
                 notificationList = notificationRepository.findByUunTopicAndDate(uun, category.getTitle(), dateNow);
                 for (Notification notification : notificationList) {
                     entry = new NotificationEntry();
@@ -471,7 +441,7 @@ public class NotificationController {
             notificationError.setErrorDescription(e.getMessage());
             notificationError.setErrorDate(new Date());
             notificationErrorRepository.save(notificationError);
-            List<NotificationError> errors = new ArrayList<NotificationError>();
+            List<NotificationError> errors = new ArrayList<>();
             errors.add(new NotificationError("Error while producing feed", "Notification Backbone"));
             notificationResponse.setErrors(errors);
         }
@@ -486,13 +456,9 @@ public class NotificationController {
     @ApiResponses({@ApiResponse(code=404,message="Not found")})
     @RequestMapping(value="/emergencynotifications",method= RequestMethod.GET)//OAuth2Authentication authentication, 
     public NotificationResponse getEmergencyNotifications(HttpServletResponse httpServletResponse, HttpServletRequest httpServletRequest) {
+
         CorsMatcher.setAccessControlAllowOrigin(httpServletRequest, httpServletResponse, CORS_PATTERN);
-        
-        OAuth2Authentication authentication = null;
-        try {
-            authentication = (OAuth2Authentication)((SecurityContextImpl)httpServletRequest.getSession().getAttribute(("SPRING_SECURITY_CONTEXT"))).getAuthentication();   
-    	} catch (Exception e) {}
-        
+
         long expires = (new Date()).getTime()+cacheExpiry;
 
         httpServletResponse.setHeader("cache-control", "public, max-age=" + cacheExpiry/1000 + ", cache");
@@ -500,7 +466,7 @@ public class NotificationController {
         
         NotificationResponse notificationResponse = new NotificationResponse();
 
-        if (authentication !=null && authentication.getOAuth2Request().getClientId().equals("notification-api-ui"))
+        if (isNotificationApiUi())
         {
             return NotificationStubResponse.getNotificationResponse();
         }
@@ -509,7 +475,7 @@ public class NotificationController {
         try {
 
             Date dateNow = new Date();
-            List<NotificationCategory> categories = new ArrayList<NotificationCategory>();
+            List<NotificationCategory> categories = new ArrayList<>();
             NotificationCategory category;
             NotificationEntry entry;
             List<Notification> notificationList;
@@ -517,7 +483,7 @@ public class NotificationController {
 
             category = new NotificationCategory();
             category.setTitle("Emergency");
-            entries = new ArrayList<NotificationEntry>();
+            entries = new ArrayList<>();
             notificationList = notificationRepository.findByPublisherIdTopicAndDate("notify-ui","Emergency" ,dateNow);
             for (Notification notification : notificationList) {
                 entry = new NotificationEntry();
@@ -541,7 +507,7 @@ public class NotificationController {
             notificationError.setErrorDescription(e.getMessage());
             notificationError.setErrorDate(new Date());
             notificationErrorRepository.save(notificationError);
-            List<NotificationError> errors = new ArrayList<NotificationError>();
+            List<NotificationError> errors = new ArrayList<>();
             errors.add(new NotificationError("Error while producing feed", "Notification Backbone"));
             notificationResponse.setErrors(errors);
         }
@@ -550,16 +516,16 @@ public class NotificationController {
     } 
     
     private List<Notification> getSortedNotification(List<Notification> notificationUnsorted){
-       List<Notification> notificationsWithEndDate = new ArrayList<Notification>();
-       List<Notification> notificationsWithoutEndDate = new ArrayList<Notification>();
-       
-       for(int i = 0; i < notificationUnsorted.size(); i++){
-           if(notificationUnsorted.get(i).getEndDate() != null){
-               notificationsWithEndDate.add(notificationUnsorted.get(i));
-           }else{
-               notificationsWithoutEndDate.add(notificationUnsorted.get(i));
-           }
-       }
+       List<Notification> notificationsWithEndDate = new ArrayList<>();
+       List<Notification> notificationsWithoutEndDate = new ArrayList<>();
+
+        for (Notification aNotificationUnsorted : notificationUnsorted) {
+            if (aNotificationUnsorted.getEndDate() != null) {
+                notificationsWithEndDate.add(aNotificationUnsorted);
+            } else {
+                notificationsWithoutEndDate.add(aNotificationUnsorted);
+            }
+        }
        
        Collections.sort(notificationsWithEndDate, new java.util.Comparator<Notification>() {
            @Override
@@ -577,11 +543,16 @@ public class NotificationController {
            }
        });       
        
-       List<Notification> notificationsSorted = new ArrayList<Notification>();
+       List<Notification> notificationsSorted = new ArrayList<>();
        notificationsSorted.addAll(notificationsWithEndDate);
        notificationsSorted.addAll(notificationsWithoutEndDate);
        
        return notificationsSorted;
     }
     
+    private boolean isNotificationApiUi() {
+        final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication != null && SecurityConfiguration.NOTIFICATION_API_UI.equals(authentication.getPrincipal());
+    }
+
 }
