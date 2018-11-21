@@ -10,7 +10,7 @@ import java.util.Date;
  * Created by rgood on 20/10/2015.
  */
 @Entity
-@Table(name="NOTIFICATION_ERRORS", schema="NOTIFY")
+@Table(name="NOTIFICATION_ERRORS")
 public class NotificationError {
 
     @Id
