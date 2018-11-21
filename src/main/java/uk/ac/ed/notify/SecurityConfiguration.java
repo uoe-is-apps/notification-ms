@@ -8,6 +8,7 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.access.channel.ChannelProcessingFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -58,6 +59,20 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     public void configure(HttpSecurity http) throws Exception {
 
         http
+                /*
+                 * Use SessionCreationPolicy.STATELESS so that "Spring Security will never create an
+                 * HttpSession and it will never use it to obtain the SecurityContext."  This
+                 * approach means that every request needs to carry authentication.
+                 */
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and()
+
+                /*
+                 * Disable CSRF (not appropriate for a collection of REST APIs that handle security
+                 * on each request)
+                 */
+                .csrf().disable()
+
                 /*
                  * Set up the CorsFilter
                  */
