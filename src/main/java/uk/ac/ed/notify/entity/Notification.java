@@ -18,7 +18,7 @@ import java.util.List;
  * Created by rgood on 18/09/2015.
  */
 @Entity
-@Table(name="NOTIFICATIONS", schema = "NOTIFY")
+@Table(name="NOTIFICATIONS")
 @NamedQueries({
         @NamedQuery(name = "Notification.findByPublisherId", query = "SELECT n FROM Notification n WHERE n.publisherId = (?1)"),
         @NamedQuery(name = "Notification.findByPublisherIdAndDate", query = "SELECT n FROM Notification n WHERE n.publisherId = (?1) and (n.startDate <=(?2) or n.startDate = NULL) and (n.endDate >= (?2) or n.endDate = NULL)"),
